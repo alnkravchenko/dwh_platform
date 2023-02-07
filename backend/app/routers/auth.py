@@ -16,10 +16,10 @@ def login(user: UserModel) -> Dict[str, str]:
     return user_dict
 
 
-@router.post("/register")
-def register(user: UserModel) -> Dict[str, str]:
+@router.post("/sign_up")
+def sign_up(user: UserModel) -> Dict[str, str]:
     user_dict = user.dict()
-    user_dict["response"] = "REGISTER"
+    user_dict["response"] = "SIGN UP"
     log.info(user_dict)
     return user_dict
 
