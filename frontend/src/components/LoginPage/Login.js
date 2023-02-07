@@ -28,9 +28,6 @@ const Login = () => {
         />
       </div>
       <div className="split right">
-        <Link to="/registration">
-          <Button variant="outlined light">Registration</Button>
-        </Link>
         <form onSubmit={handleSubmit} className="centered login-box">
           <h1 className="header login-label">User Login</h1>
           <label>
@@ -54,6 +51,11 @@ const Login = () => {
               LOGIN
             </Button>
           </div>
+          <Link to="/sing_up">
+            <Button variant="outline-dark" className="signup-btn">
+              SIGN UP
+            </Button>
+          </Link>
         </form>
       </div>
     </>

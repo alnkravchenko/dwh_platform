@@ -55,6 +55,17 @@
     transition: 0.5s;
     border: none;
 }
+.signup-btn{
+  width: 120px;
+  border-radius: 30px;
+  border-color: #414141;
+  text-emphasis-color: #414141;
+}
+.signup-btn:hover {
+    background-color: #727272;
+    transition: 0.5s;
+    border-color: #727272;
+}
 .background-image {
     width: 100%;
     height: 100%;
