@@ -1,0 +1,11 @@
+# Python files
+__pycache__
+
+
+# React & JS files
+node_modules
+package-lock.json
+
+# Infrastructure & config files
+configs.sh
+info.txt
