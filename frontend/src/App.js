@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import NotFound from "./components/Errors/NotFound";
 import Login from "./components/LoginPage/Login";
-import Registration from "./components/RegistrationPage/Registration";
+import SignUp from "./components/SignInPage/SignUp";
 
 const App = () => {
   return (
@@ -10,7 +10,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route exact path="/" element={<Login />} />
-          <Route path="/registration" element={<Registration />} />
+          <Route path="/sing_up" element={<SignUp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

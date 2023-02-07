@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import loginUser from "../../controllers/login";
-// import "../../styles/common.scss";
+import { loginUser } from "../../controllers/auth";
 import "./Login.scss";
 
 const Login = () => {

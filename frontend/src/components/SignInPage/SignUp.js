@@ -1,18 +1,16 @@
 // import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
-import loginUser from "../../controllers/login";
-import "../../styles/common.scss";
+import { signInUser } from "../../controllers/auth";
 import "../LoginPage/Login.scss";
-import "./Registration.scss";
 
-const Registration = () => {
+const SignUp = () => {
   const [username, setUserName] = useState();
   const [password, setPassword] = useState();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = await loginUser({
+    const token = await signInUser({
       username,
       password,
     });
@@ -29,27 +27,27 @@ const Registration = () => {
         />
       </div>
       <div className="split right">
-        <form onSubmit={handleSubmit} className="centered login-box">
-          <h1 className="header login-label">User Login</h1>
-          <label>
-            <input
-              type="text"
-              className="login-inpt"
-              placeholder="Email address"
-              onChange={(e) => setUserName(e.target.value)}
-            />
-          </label>
-          <label>
-            <input
-              type="password"
-              className="login-inpt"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
+        <form
+          onSubmit={handleSubmit}
+          className="centered login-box"
+          style={{ "padding-bottom": "69px" }}
+        >
+          <h1 className="header login-header">User Sign Up</h1>
+          <input
+            type="text"
+            className="login-inpt"
+            placeholder="Email address"
+            onChange={(e) => setUserName(e.target.value)}
+          />
+          <input
+            type="password"
+            className="login-inpt"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <div>
             <Button variant="dark" type="submit" className="login-btn">
-              LOGIN
+              SIGN UP
             </Button>
           </div>
         </form>
@@ -62,4 +60,4 @@ const Registration = () => {
 //   setToken: PropTypes.func.isRequired,
 // };
 
-export default Registration;
+export default SignUp;
