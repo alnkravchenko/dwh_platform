@@ -20,12 +20,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: 30px;
 }
-.login-label{
+.login-header{
     padding-bottom: 35px;
     font-size: 5.25rem;
     font-style: bold;
+    width: 600px;
 }
 .login-inpt {
     width: 400px;

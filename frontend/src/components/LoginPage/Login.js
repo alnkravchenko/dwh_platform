@@ -29,7 +29,7 @@ const Login = () => {
       </div>
       <div className="split right">
         <form onSubmit={handleSubmit} className="centered login-box">
-          <h1 className="header login-label">User Login</h1>
+          <h1 className="header login-header">User Login</h1>
           <label>
             <input
               type="text"
