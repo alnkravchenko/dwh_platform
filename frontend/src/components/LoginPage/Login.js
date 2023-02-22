@@ -45,7 +45,7 @@ const Login = () => {
           <Button variant="dark" type="submit" className="login-btn">
             LOGIN
           </Button>
-          <Link to="/sing_up" tabindex="-1">
+          <Link to="/sing_up" tabIndex="-1">
             <Button variant="outline-dark" className="signup-btn">
               SIGN UP
             </Button>
