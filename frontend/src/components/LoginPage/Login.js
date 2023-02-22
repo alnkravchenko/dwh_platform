@@ -30,28 +30,22 @@ const Login = () => {
       <div className="split right">
         <form onSubmit={handleSubmit} className="centered login-box">
           <h1 className="header login-header">User Login</h1>
-          <label>
-            <input
-              type="text"
-              className="login-inpt"
-              placeholder="Email address"
-              onChange={(e) => setUserName(e.target.value)}
-            />
-          </label>
-          <label>
-            <input
-              type="password"
-              className="login-inpt"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-          <div>
-            <Button variant="dark" type="submit" className="login-btn">
-              LOGIN
-            </Button>
-          </div>
-          <Link to="/sing_up">
+          <input
+            type="text"
+            className="login-inpt"
+            placeholder="Email address"
+            onChange={(e) => setUserName(e.target.value)}
+          />
+          <input
+            type="password"
+            className="login-inpt"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="dark" type="submit" className="login-btn">
+            LOGIN
+          </Button>
+          <Link to="/sing_up" tabindex="-1">
             <Button variant="outline-dark" className="signup-btn">
               SIGN UP
             </Button>
