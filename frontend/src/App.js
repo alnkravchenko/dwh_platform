@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import NotFound from "./components/Errors/NotFound";
 import Login from "./components/LoginPage/Login";
-import SignUp from "./components/SignInPage/SignUp";
+import SignUp from "./components/SignUpPage/SignUp";
 
 const App = () => {
   return (

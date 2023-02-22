@@ -1,7 +1,7 @@
 // import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
-import { signInUser } from "../../controllers/auth";
+import Auth from "../../services/auth";
 import "../LoginPage/Login.scss";
 
 const SignUp = () => {
@@ -10,7 +10,7 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = await signInUser({
+    const token = await Auth().signInUser({
       username,
       password,
     });
@@ -45,11 +45,9 @@ const SignUp = () => {
             placeholder="Password"
             onChange={(e) => setPassword(e.target.value)}
           />
-          <div>
-            <Button variant="dark" type="submit" className="login-btn">
-              SIGN UP
-            </Button>
-          </div>
+          <Button variant="dark" type="submit" className="login-btn">
+            SIGN UP
+          </Button>
         </form>
       </div>
     </>

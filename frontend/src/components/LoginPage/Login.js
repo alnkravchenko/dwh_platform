@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { loginUser } from "../../controllers/auth";
+import Auth from "../../services/auth";
 import "./Login.scss";
 
 const Login = () => {
@@ -11,7 +11,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = await loginUser({
+    const token = await Auth().loginUser({
       username,
       password,
     });
