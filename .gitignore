@@ -9,3 +9,4 @@ package-lock.json
 # Infrastructure & config files
 configs.sh
 info.txt
+*.db
