@@ -1,4 +1,5 @@
 import React from "react";
+import DocumentTitle from "react-document-title";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Auth from "./components/AuthenticationPage/Auth";
 import NotFound from "./components/Errors/NotFound";
@@ -9,7 +10,7 @@ const authService = new AuthService();
 
 const App = () => {
   return (
-    <>
+    <DocumentTitle title={process.env.REACT_APP_APP_NAME || "React App"}>
       <BrowserRouter>
         <Routes>
           <Route
@@ -32,7 +33,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </DocumentTitle>
   );
 };
 
