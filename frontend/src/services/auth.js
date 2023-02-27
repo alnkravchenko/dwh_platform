@@ -1,6 +1,6 @@
-export default class Auth {
+export default class AuthService {
   loginUser = async (credentials) => {
-    return fetch("http://localhost:8000/auth/login", {
+    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/auth/login`, {
       method: "POST",
       mode: "cors",
       headers: {
@@ -10,8 +10,10 @@ export default class Auth {
     }).then((data) => data.json());
   };
 
-  signInUser = async (credentials) => {
-    return fetch("http://localhost:8000/auth/sign_up", {
+  signUpUser = async ({ email, password }) => {
+    const username = email.split("@")[0];
+    const credentials = { username, email, password };
+    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/auth/sign_up`, {
       method: "POST",
       mode: "cors",
       headers: {
