@@ -10,3 +10,4 @@ package-lock.json
 configs.sh
 info.txt
 *.db
+.env
