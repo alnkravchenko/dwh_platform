@@ -11,12 +11,12 @@ def get_users(db: Session, offset: int = 0, limit: int = 100) -> List[UserDB]:
     return db.query(UserDB).offset(offset).limit(limit).all()
 
 
-def get_user_by_username(db: Session, user: UserModel) -> List[UserDB]:
-    return db.query(UserDB).filter_by(username=user.username).all()
+def get_user_by_username(db: Session, user: UserModel) -> UserDB | None:
+    return db.query(UserDB).filter_by(username=user.username).first()
 
 
-def get_user_by_email(db: Session, user: UserModel) -> List[UserDB]:
-    return db.query(UserDB).filter_by(email=user.email).all()
+def get_user_by_email(db: Session, user: UserModel) -> UserDB | None:
+    return db.query(UserDB).filter_by(email=user.email).first()
 
 
 def create_user(db: Session, user: UserModel) -> UserDB:
