@@ -20,10 +20,11 @@ def login(
         user_dict = user.dict()
         user_dict["response"] = "LOGIN"
 
-        log.info(user_dict)
+        log.info(f"[LOGIN] Data: {user_dict}")
         response.status_code = status.HTTP_200_OK
         return user_dict
 
+    log.info("[LOGIN] Invalid user")
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return {"detail": "Invalid user"}
 
@@ -41,9 +42,10 @@ def sign_up(
         user_dict = user.dict()
         user_dict["response"] = "SIGN UP"
 
-        log.info(user_dict)
+        log.info(f"[SIGN UP] Data: {user_dict}")
         create_user(db, user)
         return user_dict
 
+    log.info("[SIGN UP] Invalid user")
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return {"detail": "Invalid data"}

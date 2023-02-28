@@ -1,4 +1,4 @@
-import uuid
+# import uuid
 
 from sqlalchemy import Column, Integer, String
 
@@ -18,3 +18,6 @@ class UserDB(Base):
     username = Column(String, unique=True)
     email = Column(String, unique=True)
     password = Column(String)
+
+    def __repr__(self):
+        return f"User(id={self.id},username={self.username},email={self.email})"
