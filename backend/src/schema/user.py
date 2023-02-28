@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import uuid
+# import uuid
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -8,7 +9,7 @@ from pydantic import BaseModel
 # TODO: add email validation
 # TODO: add password validation
 class UserModel(BaseModel):
-    id: int
+    id: Optional[int]
     username: str
     email: str
     password: str

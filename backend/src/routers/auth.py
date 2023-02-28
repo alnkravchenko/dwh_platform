@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/login")
 def login(
     user: UserModel, response: Response, db: Session = Depends(get_db)
-) -> Dict[str, str]:
+) -> Dict[str, str | None]:
     if verify_user(db, user):
         user_dict = user.dict()
         user_dict["response"] = "LOGIN"
