@@ -38,5 +38,5 @@ app.include_router(auth.router)
 
 
 # Logging
-log = structlog.get_logger()
+log = structlog.get_logger(module=__name__)
 log.info(f"App started with configs:\n{settings}")

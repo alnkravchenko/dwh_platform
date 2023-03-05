@@ -8,7 +8,7 @@ from schema.user import UserModel
 from sqlalchemy.orm import Session
 from utils.verification import verify_new_user, verify_user
 
-log = structlog.get_logger()
+log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
