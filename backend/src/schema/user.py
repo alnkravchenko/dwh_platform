@@ -6,7 +6,6 @@ from typing import Optional
 from pydantic import BaseModel, NameEmail
 
 
-# TODO: add email validation
 # TODO: add password validation
 class UserModel(BaseModel):
     id: Optional[int]
