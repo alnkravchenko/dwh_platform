@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from repos.database import get_db
 from repos.user import create_user, get_users
+from schema.responses import DefaultResponse
 from schema.user import UserModel
 from sqlalchemy.orm import Session
 from utils.verification import verify_new_user, verify_user
@@ -15,6 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post(
     "/login",
+    responses={200: {"model": DefaultResponse}, 401: {"model": DefaultResponse}},
 )
 def login(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
     is_verified, msg = verify_user(db, user)
@@ -30,6 +32,7 @@ def get_all_users(offset: int = 0, limit: int = 100, db: Session = Depends(get_d
 
 @router.post(
     "/sign_up",
+    responses={201: {"model": DefaultResponse}, 400: {"model": DefaultResponse}},
 )
 def sign_up(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
     is_verified, msg = verify_new_user(db, user)
