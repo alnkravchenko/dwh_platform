@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from repos import user as user_db
 from schema.user import UserModel
 from sqlalchemy.orm import Session
@@ -5,14 +7,25 @@ from sqlalchemy.orm import Session
 from .hashing import check_password
 
 
-def verify_user(db: Session, user: UserModel) -> bool:
+def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
     user_entity = user_db.get_user_by_email(db, user)
     if user_entity is not None:
-        return check_password(user.password, str(user_entity.password))
-    return False
+        password_verification = check_password(user.password, str(user_entity.password))
+        response_msg = (
+            "User verified"
+            if password_verification
+            else "Value is not a valid password"
+        )
+        return password_verification, response_msg
+    return False, "No user found by email"
 
 
-def verify_new_user(db: Session, user: UserModel) -> bool:
-    user_by_username = user_db.get_user_by_username(db, user)
+def verify_new_user(db: Session, user: UserModel) -> Tuple[bool, str]:
     user_by_email = user_db.get_user_by_email(db, user)
-    return user_by_username is not None and user_by_email is not None
+    user_verification = user_by_email is None
+    msg = (
+        "New user created"
+        if user_verification
+        else "User with this email has already exist"
+    )
+    return user_verification, msg

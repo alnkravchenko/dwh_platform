@@ -1,7 +1,8 @@
-from typing import Dict, List
+from typing import List
 
 import structlog
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 from repos.database import get_db
 from repos.user import create_user, get_users
 from schema.user import UserModel
@@ -12,21 +13,14 @@ log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login")
-def login(
-    user: UserModel, response: Response, db: Session = Depends(get_db)
-) -> Dict[str, str | None]:
-    if verify_user(db, user):
-        user_dict = user.dict()
-        user_dict["response"] = "LOGIN"
-
-        log.info(f"[LOGIN] Data: {user_dict}")
-        response.status_code = status.HTTP_200_OK
-        return user_dict
-
-    log.info("[LOGIN] Invalid user")
-    response.status_code = status.HTTP_401_UNAUTHORIZED
-    return {"detail": "Invalid user"}
+@router.post(
+    "/login",
+)
+def login(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
+    is_verified, msg = verify_user(db, user)
+    status_code = 200 if is_verified else 401
+    log.info(f"[LOGIN] {status_code} {msg}")
+    return JSONResponse(content={"details": msg}, status_code=status_code)
 
 
 @router.get("/users/", response_model=List[UserModel])
@@ -34,18 +28,13 @@ def get_all_users(offset: int = 0, limit: int = 100, db: Session = Depends(get_d
     return get_users(db, offset, limit)
 
 
-@router.post("/sign_up")
-def sign_up(
-    user: UserModel, response: Response, db: Session = Depends(get_db)
-) -> Dict[str, str]:
-    if verify_new_user(db, user):
-        user_dict = user.dict()
-        user_dict["response"] = "SIGN UP"
-
-        log.info(f"[SIGN UP] Data: {user_dict}")
+@router.post(
+    "/sign_up",
+)
+def sign_up(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
+    is_verified, msg = verify_new_user(db, user)
+    if is_verified:
         create_user(db, user)
-        return user_dict
-
-    log.info("[SIGN UP] Invalid user")
-    response.status_code = status.HTTP_401_UNAUTHORIZED
-    return {"detail": "Invalid data"}
+    status_code = 201 if is_verified else 400
+    log.info(f"[SIGN UP] {status_code} {msg}")
+    return JSONResponse(content={"details": msg}, status_code=status_code)
