@@ -12,16 +12,18 @@ def get_users(db: Session, offset: int = 0, limit: int = 100) -> List[UserDB]:
 
 
 def get_user_by_username(db: Session, user: UserModel) -> UserDB | None:
-    return db.query(UserDB).filter_by(username=user.username).first()
+    return db.query(UserDB).filter_by(username=user.email.name).first()
 
 
 def get_user_by_email(db: Session, user: UserModel) -> UserDB | None:
-    return db.query(UserDB).filter_by(email=user.email).first()
+    return db.query(UserDB).filter_by(email=user.email.email).first()
 
 
 def create_user(db: Session, user: UserModel) -> UserDB:
     hashed_password = get_hashed_password(user.password)
-    db_user = UserDB(username=user.username, email=user.email, password=hashed_password)
+    db_user = UserDB(
+        username=user.email.name, email=user.email.email, password=hashed_password
+    )
     return create_entity(db, db_user)  # type: ignore
 
 
