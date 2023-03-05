@@ -2,7 +2,9 @@ from typing import List
 
 import structlog
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from models.base import Base
 from pydantic import BaseSettings, Field
 from repos.database import engine
@@ -31,6 +33,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc: RequestValidationError):
+    error_details = exc.errors()
+    msg = error_details[0]["msg"].capitalize()
+    return JSONResponse(content={"details": msg}, status_code=400)
 
 
 # Routings
