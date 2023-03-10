@@ -5,6 +5,8 @@ import DocumentTitle from "react-document-title";
 import { useAuthService } from "../../services/auth";
 import "./Auth.scss";
 
+// BUG: when switch to SignUp page the loading status does not refresh
+
 const Auth = ({ pageName, authFunc, extraComponent }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,6 +18,7 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // BUG: the loading status does not refresh when error occurs
     setAuthLoading(true);
     clearError();
     await new Promise((r) => setTimeout(r, 1000));
