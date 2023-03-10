@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import React, { useState } from "react";
-import { Button } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import DocumentTitle from "react-document-title";
 import { useAuthService } from "../../services/auth";
 import "./Auth.scss";
@@ -8,6 +8,7 @@ import "./Auth.scss";
 const Auth = ({ pageName, authFunc, extraComponent }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   const authService = useAuthService();
   const { error, clearError } = authService;
@@ -15,12 +16,18 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthLoading(true);
+    clearError();
+    await new Promise((r) => setTimeout(r, 1000));
     const response = await auth({
       email,
       password,
     });
     console.log(response);
+    setAuthLoading(false);
   };
+
+  const errorMessage = error ? <Alert variant="danger">{error}</Alert> : null;
 
   return (
     <DocumentTitle title={pageName}>
@@ -49,9 +56,15 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button variant="dark" type="submit" className="auth-btn">
+            <Button
+              variant="dark"
+              type="submit"
+              className="auth-btn"
+              disabled={authLoading}
+            >
               {pageName.toUpperCase()}
             </Button>
+            {errorMessage}
             {extraComponent}
           </form>
         </div>

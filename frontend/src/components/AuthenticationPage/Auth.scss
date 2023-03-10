@@ -51,8 +51,12 @@
   border-radius: 30px;
 }
 .auth-btn:hover {
-  background-color: #727272;
+  background-color: #616161;
   transition: 0.5s;
+  border: none;
+}
+.auth-btn:disabled {
+  background-color: #b6b6b6;
   border: none;
 }
 .background-image {
