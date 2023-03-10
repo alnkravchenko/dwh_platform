@@ -1,29 +1,22 @@
-export default class AuthService {
-  emailToUsername = email => email.split("@")[0];
+import { useHttp } from "../hooks/http.hook";
 
-  loginUser = async ({ email, password }) => {
-    const username = this.emailToUsername(email);
-    const credentials = { username, email, password };
-    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/auth/login`, {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    }).then((data) => data.json());
+export const useAuthService = () => {
+  const { loading, request, error, clearError } = useHttp();
+
+  // const _emailToUsername = (email) => email.split("@")[0];
+  const _host = process.env.REACT_APP_BACKEND_HOST;
+
+  const loginUser = async (credentials) => {
+    const url = `${_host}/auth/login`;
+    const res = await request(url, "POST", JSON.stringify(credentials));
+    return res.details;
   };
 
-  signUpUser = async ({ email, password }) => {
-    const username = this.emailToUsername(email);
-    const credentials = { username, email, password };
-    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/auth/sign_up`, {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-    }).then((data) => data.json());
+  const signUpUser = async (credentials) => {
+    const url = `${_host}/auth/sign_up`;
+    const res = await request(url, "POST", JSON.stringify(credentials));
+    return res.details;
   };
-}
+
+  return { loading, error, clearError, loginUser, signUpUser };
+};
