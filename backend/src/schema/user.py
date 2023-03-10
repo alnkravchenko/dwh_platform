@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-# import uuid
+
 from typing import Optional
 
-from pydantic import BaseModel, NameEmail
+from pydantic import BaseModel, NameEmail, SecretStr
 
 
-# TODO: add password validation
 class UserModel(BaseModel):
     id: Optional[int]
     username: Optional[str]
     email: NameEmail
-    password: str
+    password: SecretStr
 
     class Config:
         orm_mode = True

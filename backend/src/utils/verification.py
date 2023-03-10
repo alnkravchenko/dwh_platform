@@ -10,7 +10,9 @@ from .hashing import check_password
 def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
     user_entity = user_db.get_user_by_email(db, user)
     if user_entity is not None:
-        password_verification = check_password(user.password, str(user_entity.password))
+        password_verification = check_password(
+            user.password.get_secret_value(), str(user_entity.password)
+        )
         response_msg = (
             "User verified"
             if password_verification

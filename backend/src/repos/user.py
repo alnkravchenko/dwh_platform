@@ -20,7 +20,7 @@ def get_user_by_email(db: Session, user: UserModel) -> UserDB | None:
 
 
 def create_user(db: Session, user: UserModel) -> UserDB:
-    hashed_password = get_hashed_password(user.password)
+    hashed_password = get_hashed_password(user.password.get_secret_value())
     db_user = UserDB(
         username=user.email.name, email=user.email.email, password=hashed_password
     )
