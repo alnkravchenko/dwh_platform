@@ -2,19 +2,24 @@ import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import DocumentTitle from "react-document-title";
+import { useAuthService } from "../../services/auth";
 import "./Auth.scss";
 
 const Auth = ({ pageName, authFunc, extraComponent }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const authService = useAuthService();
+  const { error, clearError } = authService;
+  const auth = authService[authFunc];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = await authFunc({
+    const response = await auth({
       email,
       password,
     });
-    console.log(token);
+    console.log(response);
   };
 
   return (
@@ -57,7 +62,7 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
 
 Auth.propTypes = {
   pageName: PropTypes.string.isRequired,
-  authFunc: PropTypes.func.isRequired,
+  authFunc: PropTypes.string.isRequired,
   extraComponent: PropTypes.element,
 };
 
