@@ -30,7 +30,7 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
     setAuthLoading(false);
   };
 
-  const errorMessage = error ? <Alert variant="danger">{error}</Alert> : null;
+  const errorMessage = error ? <AuthAlert errorMsg={error} /> : null;
 
   return (
     <DocumentTitle title={pageName}>
@@ -74,6 +74,10 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
       </>
     </DocumentTitle>
   );
+};
+
+const AuthAlert = ({ errorMsg }) => {
+  return <Alert variant="danger">{errorMsg}</Alert>;
 };
 
 Auth.propTypes = {
