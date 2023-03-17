@@ -10,24 +10,19 @@ import "./Auth.scss";
 const Auth = ({ pageName, authFunc, extraComponent }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
 
   const authService = useAuthService();
-  const { error, clearError } = authService;
+  const { loading, error, clearError } = authService;
   const auth = authService[authFunc];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // BUG: the loading status does not refresh when error occurs
-    setAuthLoading(true);
     clearError();
-    await new Promise((r) => setTimeout(r, 1000));
     const response = await auth({
       email,
       password,
     });
     console.log(response);
-    setAuthLoading(false);
   };
 
   const errorMessage = error ? <AuthAlert errorMsg={error} /> : null;
@@ -63,7 +58,7 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
               variant="dark"
               type="submit"
               className="auth-btn"
-              disabled={authLoading}
+              disabled={loading}
             >
               {pageName.toUpperCase()}
             </Button>
