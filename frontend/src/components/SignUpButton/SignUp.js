@@ -3,10 +3,12 @@ import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import "../SignUpButton/SignUp.scss";
 
-const SignUpButton = () => {
+const SignUpButton = ({ disabled }) => {
+  const styles = disabled ? "disable-link" : "";
+
   return (
-    <Link to="/sing_up" tabIndex="-1">
-      <Button variant="outline-dark" className="signup-btn">
+    <Link to="/sing_up" tabIndex="-1" className={styles}>
+      <Button variant="outline-dark" className="signup-btn" disabled={disabled}>
         SIGN UP
       </Button>
     </Link>

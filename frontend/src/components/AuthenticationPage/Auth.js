@@ -5,9 +5,7 @@ import DocumentTitle from "react-document-title";
 import { useAuthService } from "../../services/auth";
 import "./Auth.scss";
 
-// BUG: when switch to SignUp page the loading status does not refresh
-
-const Auth = ({ pageName, authFunc, extraComponent }) => {
+const Auth = ({ pageName, authFunc, render = () => {} }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -63,7 +61,7 @@ const Auth = ({ pageName, authFunc, extraComponent }) => {
               {pageName.toUpperCase()}
             </Button>
             {errorMessage}
-            {extraComponent}
+            {render(loading)}
           </form>
         </div>
       </>
@@ -78,7 +76,7 @@ const AuthAlert = ({ errorMsg }) => {
 Auth.propTypes = {
   pageName: PropTypes.string.isRequired,
   authFunc: PropTypes.string.isRequired,
-  extraComponent: PropTypes.element,
+  render: PropTypes.func,
 };
 
 export default Auth;

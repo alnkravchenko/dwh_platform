@@ -17,7 +17,7 @@ const App = () => {
               <Auth
                 pageName="Login"
                 authFunc="loginUser"
-                extraComponent={<SignUpButton />}
+                render={(loading) => <SignUpButton disabled={loading} />}
               />
             }
           />

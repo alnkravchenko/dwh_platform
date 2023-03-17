@@ -5,9 +5,18 @@
   border-radius: 30px;
   border-color: #414141;
   text-emphasis-color: #414141;
+  transition: 0.3s;
 }
 .signup-btn:hover {
   background-color: #727272;
   transition: 0.5s;
   border-color: #727272;
+}
+.signup-btn:disabled {
+  background-color: #b6b6b6;
+  border-color: #b6b6b6;
+  color: #ffffff;
+}
+.disable-link {
+  pointer-events: none;
 }
