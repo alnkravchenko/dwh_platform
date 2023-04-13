@@ -1,0 +1,20 @@
+FROM alpine/git as download_image
+WORKDIR /home/git/code
+
+RUN git init dwh_platform && \
+  cd dwh_platform && \
+  git remote add origin https://github.com/alnkravchenko/dwh_platform && \
+  git config core.sparseCheckout true && \
+  echo "frontend/" >> .git/info/sparse-checkout && \
+  git pull origin main
+
+FROM node:18.15.0-slim as build_image
+RUN mkdir -p /app
+
+COPY --from=download_image /home/git/code/dwh_platform /app
+
+WORKDIR /app/frontend
+RUN npm install
+RUN npm run build
+
+ENTRYPOINT ["npm", "run", "start"]

@@ -1,0 +1,19 @@
+FROM alpine/git as download_image
+WORKDIR /home/git/code
+
+RUN git init dwh_platform && \
+  cd dwh_platform && \
+  git remote add origin https://github.com/alnkravchenko/dwh_platform && \
+  git config core.sparseCheckout true && \
+  echo "backend/" >> .git/info/sparse-checkout && \
+  git pull origin main
+
+FROM python:3.10-slim-buster as build_image
+RUN mkdir -p /app
+
+COPY --from=download_image /home/git/code/dwh_platform /app
+RUN cd /app/backend/scripts && \ 
+  pip install --no-cache-dir -r requirements.txt
+
+WORKDIR /app/backend/src
+ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

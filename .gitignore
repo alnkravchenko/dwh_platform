@@ -11,3 +11,4 @@ configs.sh
 info.txt
 *.db
 .env
+db-data
