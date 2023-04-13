@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, NameEmail, SecretStr
 
 
 class UserModel(BaseModel):
-    id: Optional[int]
+    id: Optional[UUID]
     username: Optional[str]
     email: NameEmail
     password: SecretStr
