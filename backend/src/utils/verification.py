@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from repos import user as user_db
+from repos import users as user_db
 from schema.user import UserModel
 from sqlalchemy.orm import Session
 
@@ -8,7 +8,7 @@ from .hashing import check_password
 
 
 def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
-    user_entity = user_db.get_user_by_email(db, user)
+    user_entity = user_db.get_user_by_email(db, user.email.email)
     if user_entity is not None:
         password_verification = check_password(
             user.password.get_secret_value(), str(user_entity.password)
@@ -23,7 +23,7 @@ def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
 
 
 def verify_new_user(db: Session, user: UserModel) -> Tuple[bool, str]:
-    user_by_email = user_db.get_user_by_email(db, user)
+    user_by_email = user_db.get_user_by_email(db, user.email.email)
     user_verification = user_by_email is None
     msg = (
         "New user created"
