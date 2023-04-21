@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: dwh_platform
     secrets:
       - build_secrets
-    # user: "999:999"
-    # volumes:
+      # user: "999:999"
+      # volumes:
       # - ./db-data:/var/lib/postgresql/data
     network_mode: bridge
     ports:
@@ -29,6 +29,7 @@ services:
       APP_NAME: ${APP_NAME}
       APP_VERSION: ${APP_VERSION}
       ORIGINS: ${ORIGINS}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     secrets:
       - build_secrets
     network_mode: bridge
