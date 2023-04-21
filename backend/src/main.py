@@ -33,6 +33,7 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 
 # Routings
 app.include_router(auth.router)
+app.include_router(projects.router)
 app.include_router(users.router)
 
 
