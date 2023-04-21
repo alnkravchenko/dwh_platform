@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from utils import settings as config
 
 engine = create_engine(
-    config.settings.database_url,
+    config.settings.DATABASE_URL,
     client_encoding="utf8",
     echo=True,
 )
