@@ -4,8 +4,10 @@ from uuid import UUID
 from models.project import ProjectDB
 from schema.project import ProjectContent, ProjectCreate, ProjectModel, ProjectUpdate
 from schema.user import UserModel
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
+
+from .database import create_entity
 
 
 def get_user_projects(
@@ -37,3 +39,28 @@ def get_content(db: Session, user_id: UUID, project_id: UUID) -> ProjectContent 
     # datasources: List[DatasourceModel] = list(db.execute(ds_query).scalars().all())
 
     # warehouse_query = select(WarehouseDB)
+
+
+def create_project(db: Session, proj: ProjectCreate) -> ProjectModel:
+    proj_db = ProjectDB(name=proj.name, created_by=proj.created_by)
+    return ProjectModel.from_orm(create_entity(db, proj_db))
+
+
+def update_project(
+    db: Session, proj_id: UUID, proj: ProjectUpdate
+) -> ProjectModel | None:
+    new_fields = proj.dict(exclude_none=True)
+
+    query = update(ProjectDB).where(ProjectDB.id == proj_id).values(**new_fields)
+    new_proj = db.execute(query).scalar()
+    db.commit()
+    if new_proj is not None:
+        return ProjectModel.from_orm(new_proj)
+
+
+def delete_project_by_id(db: Session, proj_id: UUID) -> bool:
+    query = delete(ProjectDB).where(ProjectDB.id == proj_id)
+    result = db.execute(query).all()
+    rows_deleted = len(result)
+    db.commit()
+    return rows_deleted > 0
