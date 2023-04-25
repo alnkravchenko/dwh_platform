@@ -8,9 +8,6 @@ from repos.database import engine
 from routers import auth, projects, users
 from utils import settings as config
 
-# Database connection
-Base.metadata.create_all(bind=engine)
-
 # Create and configure the app
 app = FastAPI()
 
@@ -22,6 +19,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Database connection
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 
 @app.exception_handler(RequestValidationError)
