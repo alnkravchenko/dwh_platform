@@ -44,10 +44,13 @@ def get_current_user(
         if email is None:
             raise credentials_exception
     except JWTError:
+        log.warn(f"[AUTH] 401 {credentials_exception.detail}")
         raise credentials_exception
     # get user
     user_db = users_db.get_user_by_email(db, email)
     if user_db is None:
+        log.warn(f"[AUTH] 404 User(email={email}) not found")
         raise credentials_exception
     user = UserModel.from_orm(user_db)
+    log.info(f"[AUTH] 200 {user}")
     return user

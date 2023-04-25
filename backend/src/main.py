@@ -30,6 +30,7 @@ def startup_event():
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc: RequestValidationError):
     error_details = exc.errors()
+    log.error(error_details)
     msg = error_details[0]["msg"].capitalize()
     return JSONResponse(content={"details": msg}, status_code=400)
 
