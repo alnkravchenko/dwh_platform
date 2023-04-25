@@ -9,9 +9,7 @@ from .datasource import DatasourceModel
 from .warehouse import WarehouseModel
 
 
-# TODO: consider joining this 2 classes
-class ProjectModel(BaseModel):
-    id: Optional[UUID]
+class ProjectCreate(BaseModel):
     name: str
     created_by: UUID
 
@@ -19,10 +17,24 @@ class ProjectModel(BaseModel):
         orm_mode = True
 
 
+class ProjectModel(ProjectCreate):
+    id: UUID
+
+    class Config:
+        orm_mode = True
+
+
 class ProjectContent(BaseModel):
     id: UUID
-    warehouse: WarehouseModel
+    warehouse: Optional[WarehouseModel]
     datasources: List[DatasourceModel]
+
+    class Config:
+        orm_mode = True
+
+
+class ProjectUpdate(BaseModel):
+    name: str
 
     class Config:
         orm_mode = True

@@ -6,7 +6,7 @@ from repos.database import get_db
 from repos.users import create_user
 from schema.jwt_auth import Token
 from schema.responses import DefaultResponse, TokenResponse
-from schema.user import UserModel
+from schema.user import UserCreate
 from sqlalchemy.orm import Session
 from utils import jwt_auth
 from utils import verification as verif
@@ -23,14 +23,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", scheme_name="JWT")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
+) -> JSONResponse:
+    user = UserCreate(
+        email=form_data.username, password=form_data.password  # type: ignore
+    )
     is_verified, msg = verif.verify_user(db, user)
     status_code = 200 if is_verified else 401
-    log.info(f"[LOGIN | GETTING TOKEN] {status_code} {msg}")
+    log.info(f"[LOGIN] {status_code} {msg}")
     # create response
     response_content = {"details": msg}
     if status_code == 200:
         user_token = Token(
-            access_token=jwt_auth.create_access_token(user.email),
+            access_token=jwt_auth.create_access_token(user.email.email),
             token_type="bearer",
         )
         response_content.update(token=user_token.json())
@@ -41,7 +45,7 @@ def login(
     "/sign_up",
     responses={201: {"model": TokenResponse}, 400: {"model": DefaultResponse}},
 )
-def sign_up(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
+def sign_up(user: UserCreate, db: Session = Depends(get_db)) -> JSONResponse:
     is_verified = verif.verify_new_user(db, user)
     is_validated = validate_password(user.password)
     sign_up_flag = all([is_verified[0], is_validated[0]])
@@ -58,7 +62,7 @@ def sign_up(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
     response_content = {"details": msgs}
     if status_code == 201:
         user_token = Token(
-            access_token=jwt_auth.create_access_token(user.email),
+            access_token=jwt_auth.create_access_token(user.email.email),
             token_type="bearer",
         )
         response_content.update(token=user_token.json())

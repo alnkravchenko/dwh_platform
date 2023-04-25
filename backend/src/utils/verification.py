@@ -1,13 +1,13 @@
 from typing import Tuple
 
 from repos import users as user_db
-from schema.user import UserModel
+from schema.user import UserCreate
 from sqlalchemy.orm import Session
 
 from .hashing import check_password
 
 
-def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
+def verify_user(db: Session, user: UserCreate) -> Tuple[bool, str]:
     user_entity = user_db.get_user_by_email(db, user.email.email)
     if user_entity is not None:
         password_verification = check_password(
@@ -22,7 +22,7 @@ def verify_user(db: Session, user: UserModel) -> Tuple[bool, str]:
     return False, "No user found by email"
 
 
-def verify_new_user(db: Session, user: UserModel) -> Tuple[bool, str]:
+def verify_new_user(db: Session, user: UserCreate) -> Tuple[bool, str]:
     user_by_email = user_db.get_user_by_email(db, user.email.email)
     user_verification = user_by_email is None
     msg = (

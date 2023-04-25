@@ -5,6 +5,7 @@ import structlog
 from fastapi import APIRouter, Depends
 from repos import projects as proj_db
 from repos.database import get_db
+from schema.project import ProjectCreate, ProjectModel, ProjectUpdate
 from schema.user import UserModel
 from sqlalchemy.orm import Session
 
