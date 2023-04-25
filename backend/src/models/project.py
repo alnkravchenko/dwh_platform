@@ -28,4 +28,4 @@ class ProjectDB(Base):
 
     owner = relationship("UserDB", back_populates="projects")
     datasources = relationship("DatasourceDB", back_populates="project")
-    warehouse = relationship("WarehouseDB", back_populates="project")
+    # warehouse = relationship("WarehouseDB", back_populates="project")
