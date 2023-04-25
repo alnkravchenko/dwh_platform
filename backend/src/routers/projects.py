@@ -1,3 +1,4 @@
+from typing import List
 from uuid import UUID
 
 import structlog
@@ -7,15 +8,21 @@ from repos.database import get_db
 from schema.user import UserModel
 from sqlalchemy.orm import Session
 
+from .users import get_current_user
+
 log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-@router.get("/")
+# TODO: add user verification by token
+@router.get("/", response_model=List[ProjectModel])
 def get_all_projects(
-    user: UserModel, offset: int = 0, limit: int = 5, db: Session = Depends(get_db)
+    user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    return proj_db.get_user_projects(db, user, offset, limit)
+    if user is not None:
+        projects = proj_db.get_user_projects(db, user)
+        log.info(f"[GET ALL BY USER] {projects}")
+        return projects
 
 
 @router.get("/{project_id}")

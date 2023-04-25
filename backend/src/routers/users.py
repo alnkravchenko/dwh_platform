@@ -1,8 +1,8 @@
+from datetime import datetime
 from typing import Annotated, List
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from repos import users as users_db
 from repos.database import get_db
@@ -11,9 +11,10 @@ from sqlalchemy.orm import Session
 from utils.jwt_auth import decode_token
 from utils.settings import settings
 
+from .auth import oauth2_scheme
+
 log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/users", tags=["users"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 @router.get(
@@ -30,7 +31,7 @@ def get_all_users(
 
 
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> UserModel:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -40,6 +41,13 @@ def get_current_user(
     # process token data
     try:
         payload = decode_token(token, settings.JWT_SECRET_KEY)
+        expires = payload.get("exp") or 0
+        if int(expires) <= datetime.utcnow().timestamp():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         email = payload.get("sub")
         if email is None:
             raise credentials_exception

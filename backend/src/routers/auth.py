@@ -1,7 +1,7 @@
 import structlog
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from repos.database import get_db
 from repos.users import create_user
 from schema.jwt_auth import Token
@@ -14,14 +14,15 @@ from utils.validation import validate_password
 
 log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", scheme_name="JWT")
 
 
 @router.post(
-    "/login",
-    responses={200: {"model": DefaultResponse}, 401: {"model": DefaultResponse}},
+    "/login", responses={200: {"model": TokenResponse}, 401: {"model": DefaultResponse}}
 )
-def login(user: UserModel, db: Session = Depends(get_db)) -> JSONResponse:
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
     is_verified, msg = verif.verify_user(db, user)
     status_code = 200 if is_verified else 401
     log.info(f"[LOGIN | GETTING TOKEN] {status_code} {msg}")
