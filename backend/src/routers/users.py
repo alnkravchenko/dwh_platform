@@ -1,9 +1,6 @@
-from datetime import datetime
-from typing import Annotated, List
-
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
-from jose import JWTError
+from fastapi import Depends, HTTPException
+from jose import ExpiredSignatureError, JWTError
 from repos import users as users_db
 from repos.database import get_db
 from schema.user import UserModel
@@ -14,45 +11,34 @@ from utils.settings import settings
 from .auth import oauth2_scheme
 
 log = structlog.get_logger(module=__name__)
-router = APIRouter(prefix="/users", tags=["users"])
-
-
-@router.get(
-    "/",
-    response_model=List[UserModel],
-)
-def get_all_users(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    offset: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-):
-    return users_db.get_users(db, offset, limit)
 
 
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> UserModel:
     credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+        status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     # process token data
     try:
         payload = decode_token(token, settings.JWT_SECRET_KEY)
-        expires = payload.get("exp") or 0
-        if int(expires) <= datetime.utcnow().timestamp():
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
         email = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
-        log.warn(f"[AUTH] 401 {credentials_exception.detail}")
+    except HTTPException as err:
+        log.warn(f"[AUTH] {err.status_code} {err.detail}")
+        raise err
+    except ExpiredSignatureError:
+        log.warn("[AUTH] 401 Signature has expired")
+        raise HTTPException(
+            status_code=401,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError as err:
+        log.warn(f"[AUTH] 401 {err}")
         raise credentials_exception
     # get user
     user_db = users_db.get_user_by_email(db, email)
