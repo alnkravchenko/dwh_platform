@@ -10,7 +10,6 @@ from schema.user import UserCreate
 from sqlalchemy.orm import Session
 from utils import jwt_auth
 from utils import verification as verif
-from utils.validation import validate_password
 
 log = structlog.get_logger(module=__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -47,7 +46,7 @@ def login(
 )
 def sign_up(user: UserCreate, db: Session = Depends(get_db)) -> JSONResponse:
     is_verified = verif.verify_new_user(db, user)
-    is_validated = validate_password(user.password)
+    is_validated = UserCreate.validate_password(user.password)
     sign_up_flag = all([is_verified[0], is_validated[0]])
 
     if sign_up_flag:
