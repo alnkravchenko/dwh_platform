@@ -11,7 +11,8 @@ def verify_user(db: Session, user: UserCreate) -> Tuple[bool, str]:
     user_entity = user_db.get_user_by_email(db, user.email.email)
     if user_entity is not None:
         password_verification = check_password(
-            user.password.get_secret_value(), str(user_entity.password)
+            user.password.get_secret_value(),
+            user_entity.password.get_secret_value(),
         )
         response_msg = (
             "User verified"
