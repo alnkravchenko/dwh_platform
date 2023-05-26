@@ -2,6 +2,7 @@ from typing import List
 from uuid import UUID
 
 from models.project import ProjectDB
+from models.user import UserDB
 from schema.project import ProjectContent, ProjectCreate, ProjectModel, ProjectUpdate
 from schema.user import UserModel
 from sqlalchemy import delete, select, update
@@ -11,19 +12,27 @@ from .database import create_entity
 
 
 def get_user_projects(
-    db: Session, user: UserModel, offset: int = 0, limit: int = 25
+    db: Session, user_id: UUID, offset: int = 0, limit: int | None = 25
 ) -> List[ProjectModel]:
     query = (
         select(ProjectDB)
-        .where(ProjectDB.created_by == user.id)
+        .where(ProjectDB.created_by == user_id)
         .offset(offset)
         .limit(limit)
     )
-    projects = db.execute(query).scalars().all()
+    proj_db = db.execute(query).scalars().all()
     db.commit()
-    if len(projects) > 0:
-        return list(map(ProjectModel.from_orm, projects))
+    if len(proj_db) > 0:
+        return list(map(ProjectModel.from_orm, proj_db))
     return []
+
+
+def get_project_by_id(db: Session, proj_id: UUID) -> ProjectModel | None:
+    query = select(ProjectDB).where(ProjectDB.id == proj_id)
+    proj_db = db.execute(query).scalar()
+    db.commit()
+    if proj_db is not None:
+        return ProjectModel.from_orm(proj_db)
 
 
 def get_content(db: Session, user_id: UUID, project_id: UUID) -> ProjectContent | None:
@@ -41,8 +50,24 @@ def get_content(db: Session, user_id: UUID, project_id: UUID) -> ProjectContent 
     # warehouse_query = select(WarehouseDB)
 
 
-def create_project(db: Session, proj: ProjectCreate) -> ProjectModel:
-    proj_db = ProjectDB(name=proj.name, created_by=proj.created_by)
+def get_project_owner(db: Session, project_id: UUID) -> UserModel | None:
+    query = (
+        select(UserDB)
+        .join(ProjectDB, UserDB.id == ProjectDB.created_by)
+        .where(ProjectDB.id == project_id)
+    )
+    owner_db = db.execute(query).scalar()
+    db.commit()
+    if owner_db is not None:
+        return UserModel.from_orm(owner_db)
+
+
+def create_project(db: Session, proj: ProjectCreate, user_id: UUID) -> ProjectModel:
+    proj_db = ProjectDB(
+        name=proj.name,
+        node_url=proj.node_url,
+        created_by=user_id,
+    )
     return ProjectModel.from_orm(create_entity(db, proj_db))
 
 
