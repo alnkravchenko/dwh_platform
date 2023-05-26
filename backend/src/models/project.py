@@ -19,6 +19,7 @@ class ProjectDB(Base):
         index=True,
     )
     name = Column(String, nullable=False)
+    node_url = Column(String, nullable=False)
     created_by = Column(
         UUID(as_uuid=True),
         ForeignKey(UserDB.id, ondelete="CASCADE"),

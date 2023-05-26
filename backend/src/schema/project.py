@@ -11,7 +11,7 @@ from .warehouse import WarehouseModel
 
 class ProjectCreate(BaseModel):
     name: str
-    created_by: UUID
+    node_url: str
 
     class Config:
         orm_mode = True
@@ -19,6 +19,7 @@ class ProjectCreate(BaseModel):
 
 class ProjectModel(ProjectCreate):
     id: UUID
+    created_by: UUID
 
     class Config:
         orm_mode = True
@@ -34,7 +35,8 @@ class ProjectContent(BaseModel):
 
 
 class ProjectUpdate(BaseModel):
-    name: str
+    name: Optional[str]
+    node_url: Optional[str]
 
     class Config:
         orm_mode = True
