@@ -6,6 +6,7 @@ from models.project import ProjectDB
 from models.user import UserDB
 from repos.database import create_entity
 from schema.datasource import DatasourceCreate, DatasourceModel, DatasourceUpdate
+from schema.datatable import DataTableModel
 from schema.user import UserModel
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
@@ -81,3 +82,8 @@ def delete_datasource_by_id(db: Session, ds_id: UUID) -> bool:
     rows_affected = db.execute(query).rowcount  # type: ignore
     db.commit()
     return rows_affected > 0
+
+
+# TODO: add database func to get ds tables
+def get_datasource_tables(db: Session, ds_id: UUID) -> List[DataTableModel]:
+    return []
