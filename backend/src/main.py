@@ -40,6 +40,7 @@ app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(datasources.router)
 app.include_router(warehouses.router)
+app.include_router(query.router)
 
 
 # Logging
