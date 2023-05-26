@@ -26,9 +26,16 @@ class DatasourceDB(Base):
         index=True,
     )
     ds_type = Column(
-        Enum("mysql", "postgresql", "mongodb", "file", "api", name="datasource_type"),
+        Enum(
+            "mysql",
+            "postgresql",
+            "mongodb",
+            "file",
+            "datatable",
+            name="datasource_type",
+        ),
         nullable=False,
     )
     config = Column(JSONB, nullable=False)
 
-    project = relationship("ProjectDB", back_populates="datasources")
+    project = relationship(ProjectDB, back_populates="datasources")

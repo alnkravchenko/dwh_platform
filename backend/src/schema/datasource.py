@@ -7,12 +7,12 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class DatasourceType(Enum):
-    mysql = 1
-    postgresql = 2
-    mongodb = 3
-    file = 4
-    api = 5
+class DatasourceType(str, Enum):
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"
+    MONGODB = "mongodb"
+    FILE = "file"
+    DATATABLE = "datatable"
 
 
 # TODO: add config JSON validation that depends on ds_type

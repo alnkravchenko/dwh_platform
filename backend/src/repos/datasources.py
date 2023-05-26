@@ -19,7 +19,7 @@ def create_datasource(db: Session, ds: DatasourceCreate) -> DatasourceModel:
     ds_db = DatasourceDB(
         name=ds.name,
         project_id=ds.project_id,
-        ds_type=ds.ds_type.name,
+        ds_type=ds.ds_type,
         config=ds.config,
     )
     return DatasourceModel.from_orm(create_entity(db, ds_db))
