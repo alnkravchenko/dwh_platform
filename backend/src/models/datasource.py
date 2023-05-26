@@ -21,7 +21,7 @@ class DatasourceDB(Base):
     name = Column(String, nullable=False)
     project_id = Column(
         UUID(as_uuid=True),
-        ForeignKey(ProjectDB.id),
+        ForeignKey(ProjectDB.id, ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

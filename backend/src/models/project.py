@@ -21,11 +21,15 @@ class ProjectDB(Base):
     name = Column(String, nullable=False)
     created_by = Column(
         UUID(as_uuid=True),
-        ForeignKey(UserDB.id),
+        ForeignKey(UserDB.id, ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    owner = relationship("UserDB", back_populates="projects")
-    datasources = relationship("DatasourceDB", back_populates="project")
-    # warehouse = relationship("WarehouseDB", back_populates="project")
+    owner = relationship(UserDB, back_populates="projects")
+    datasources = relationship(
+        "DatasourceDB", cascade="all, delete", back_populates="project"
+    )
+    warehouse = relationship(
+        "WarehouseDB", cascade="all, delete", back_populates="project"
+    )

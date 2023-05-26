@@ -21,7 +21,7 @@ class UserDB(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
 
-    projects = relationship("ProjectDB", back_populates="owner")
+    projects = relationship("ProjectDB", cascade="all, delete", back_populates="owner")
 
     def __repr__(self):
         return f"User(id={self.id},username={self.username},email={self.email})"
