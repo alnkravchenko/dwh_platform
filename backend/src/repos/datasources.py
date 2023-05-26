@@ -30,16 +30,20 @@ def update_datasource(
 ) -> DatasourceModel | None:
     new_fields = ds.dict(exclude_none=True)
 
-    query = update(DatasourceDB).where(DatasourceDB.id == ds_id).values(**new_fields)
-    new_ds = db.execute(query).scalar()
+    query = (
+        update(DatasourceDB)
+        .returning(DatasourceDB)
+        .where(DatasourceDB.id == ds_id)
+        .values(**new_fields)
+    )
+    new_ds_db = db.execute(query).scalar()
     db.commit()
-    if new_ds is not None:
-        return DatasourceModel.from_orm(new_ds)
+    if new_ds_db is not None:
+        return DatasourceModel.from_orm(new_ds_db)
 
 
 def delete_datasource_by_id(db: Session, ds_id: UUID) -> bool:
     query = delete(DatasourceDB).where(DatasourceDB.id == ds_id)
-    result = db.execute(query).all()
-    rows_deleted = len(result)
+    rows_affected = db.execute(query).rowcount  # type: ignore
     db.commit()
-    return rows_deleted > 0
+    return rows_affected > 0

@@ -51,7 +51,12 @@ def update_project(
 ) -> ProjectModel | None:
     new_fields = proj.dict(exclude_none=True)
 
-    query = update(ProjectDB).where(ProjectDB.id == proj_id).values(**new_fields)
+    query = (
+        update(ProjectDB)
+        .returning(ProjectDB)
+        .where(ProjectDB.id == proj_id)
+        .values(**new_fields)
+    )
     new_proj = db.execute(query).scalar()
     db.commit()
     if new_proj is not None:
@@ -60,7 +65,6 @@ def update_project(
 
 def delete_project_by_id(db: Session, proj_id: UUID) -> bool:
     query = delete(ProjectDB).where(ProjectDB.id == proj_id)
-    result = db.execute(query).all()
-    rows_deleted = len(result)
+    rows_affected = db.execute(query).rowcount  # type: ignore
     db.commit()
-    return rows_deleted > 0
+    return rows_affected > 0
