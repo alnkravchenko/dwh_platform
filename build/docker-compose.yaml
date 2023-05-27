@@ -11,9 +11,6 @@ services:
       POSTGRES_DB: dwh_platform
     secrets:
       - build_secrets
-      # user: "999:999"
-      # volumes:
-      # - ./db-data:/var/lib/postgresql/data
     network_mode: bridge
     ports:
       - 5432:5432
@@ -36,25 +33,25 @@ services:
     network_mode: bridge
     ports:
       - 8000:8000
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile-frontend
-    depends_on:
-      - backend
-    container_name: react-frontend
-    restart: on-failure
-    environment:
-      FAST_REFRESH: ${FAST_REFRESH}
-      WATCHPACK_POLLING: ${WATCHPACK_POLLING}
-      REACT_APP_APP_NAME: ${REACT_APP_APP_NAME}
-      REACT_APP_APP_VERSION: ${REACT_APP_APP_VERSION}
-      REACT_APP_BACKEND_HOST: ${REACT_APP_BACKEND_HOST}
-    secrets:
-      - build_secrets
-    network_mode: bridge
-    ports:
-      - 3000:3000
+    # frontend:
+    #   build:
+    #     context: .
+    #     dockerfile: Dockerfile-frontend
+    #   depends_on:
+    #     - backend
+    #   container_name: react-frontend
+    #   restart: on-failure
+    #   environment:
+    #     FAST_REFRESH: ${FAST_REFRESH}
+    #     WATCHPACK_POLLING: ${WATCHPACK_POLLING}
+    #     REACT_APP_APP_NAME: ${REACT_APP_APP_NAME}
+    #     REACT_APP_APP_VERSION: ${REACT_APP_APP_VERSION}
+    #     REACT_APP_BACKEND_HOST: ${REACT_APP_BACKEND_HOST}
+    #   secrets:
+    #     - build_secrets
+    #   network_mode: bridge
+    #   ports:
+    #     - 3000:3000
 secrets:
   build_secrets:
     file: .env
