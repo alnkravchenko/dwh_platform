@@ -30,6 +30,7 @@ services:
       APP_VERSION: ${APP_VERSION}
       ORIGINS: ${ORIGINS}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      DB_URL: ${DB_URL}
     secrets:
       - build_secrets
     network_mode: bridge
