@@ -8,6 +8,8 @@ from schema.datasource import DatasourceModel
 from schema.user import UserModel
 from sqlalchemy.orm import Session
 
+from .project import ProjectService
+
 
 class QueryService:
     def __init__(self, db: Session, user: UserModel) -> None:
@@ -26,7 +28,6 @@ class QueryService:
         spark = configure_spark_with_delta_pip(session_build).getOrCreate()
         return spark
 
-    # TODO: add project validation
     def validate_query(self, project_id: UUID, query: str) -> Tuple[bool, str]:
         """
         Validate the syntax and validity of a PySpark query
@@ -36,6 +37,12 @@ class QueryService:
         * creates spark session
         """
         proj = proj_db.get_project_by_id(self.db, project_id)
+        # validate user access
+        status_code, msg = ProjectService(self.db, self.user).validate_user_access(
+            project_id
+        )
+        if status_code != 200:
+            return False, msg
         node_url = proj.node_url  # type: ignore
         # create spark session
         spark_session = self.__setup_connection(node_url)
