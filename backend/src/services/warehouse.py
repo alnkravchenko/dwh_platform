@@ -65,7 +65,6 @@ class WarehouseService:
         return 200, wh
 
     def create_warehouse(self, wh: WarehouseCreate) -> Tuple[int, str]:
-        # check connection to spark cluster
         created_wh = wh_db.create_warehouse(self.db, wh)
         self.__add_datatables(created_wh, wh.datatables)
         return 200, f"Warehouse(id={created_wh.id}) created"
