@@ -66,8 +66,8 @@ class DatasourceService:
         ds = ds_db.create_datasource(self.db, ds)
         # create datasource tables in data warehouse
         tables = self.__request_tables_from_ds(ds)
-        # update or create tables in database
-        dt_db.update_tables(self.db, tables)
+        # create tables in database
+        dt_db.create_tables(self.db, tables)
         # fill tables with data
         if user_file is not None:
             user_file.file.read()
@@ -82,7 +82,7 @@ class DatasourceService:
         # add or update datasource tables into database
         tables = self.__request_tables_from_ds(new_ds)
         dt_db.update_tables(self.db, tables)
-        return 200, f"Datasource(id={ds_id}) updated"
+        return 200, f"Datasource(id={ds_id}) fields updated"
 
     def delete_datasource(self, ds_id: UUID) -> Tuple[int, str]:
         is_deleted = ds_db.delete_datasource_by_id(self.db, ds_id)
