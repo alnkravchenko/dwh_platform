@@ -47,6 +47,7 @@ jupyter_core==5.3.0
 lazy-object-proxy==1.9.0
 matplotlib-inline==0.1.6
 mccabe==0.7.0
+mysql-connector==2.2.9
 nest-asyncio==1.5.6
 numpy==1.24.3
 packaging==23.1
@@ -72,6 +73,7 @@ pydantic==1.10.4
 pyflakes==3.0.1
 Pygments==2.15.1
 pylint==2.16.0
+pymongo==4.3.3
 pyparsing==3.0.9
 python-dateutil==2.8.2
 python-dotenv==0.21.1
