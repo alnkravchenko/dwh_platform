@@ -52,6 +52,57 @@ services:
     #   network_mode: bridge
     #   ports:
     #     - 3000:3000
+    # Data source examples
+    postgresDatasource:
+      image: postgres:15
+      depends_on:
+        - database
+      container_name: datasource-postgres
+      restart: on-failure
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_DB: test_db
+      secrets:
+        - build_secrets
+      volumes:
+        - ./db-data/dspostgres.sql:/docker-entrypoint-initdb.d/init.sql
+      network_mode: bridge
+      ports:
+        - 80:5432
+    mysqlDatasource:
+      image: mysql:latest
+      depends_on:
+        - database
+      container_name: datasource-mysql
+      restart: on-failure
+      environment:
+        - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+        - MYSQL_DATABASE=test_db
+        - MYSQL_USER=test_user
+        - MYSQL_PASSWORD=${DB_PASSWORD}
+      secrets:
+        - build_secrets
+      volumes:
+        - ./db-data/dsmysql.sql:/docker-entrypoint-initdb.d/init.sql
+      network_mode: bridge
+      ports:
+        - 3306:3306
+    mongodbDarasource:
+      image: mongo:latest
+      depends_on:
+        - database
+      container_name: datasource-mongo
+      restart: on-failure
+      environment:
+        - MONGO_INITDB_ROOT_USERNAME=admin
+        - MONGO_INITDB_ROOT_PASSWORD=password
+      secrets:
+        - build_secrets
+      ports:
+        - 27017:27017
+      volumes:
+        - ./db-data/dsmongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 secrets:
   build_secrets:
     file: .env
