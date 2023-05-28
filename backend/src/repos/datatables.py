@@ -1,10 +1,26 @@
 from typing import List
+from uuid import UUID
 
 from models.datatable import DataTableDB
 from schema.datatable import DataTableCreate, DataTableModel
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+
+def get_datasource_tables(
+    db: Session, ds_id: UUID, offset: int = 0, limit: int | None = 25
+) -> List[DataTableModel]:
+    query = (
+        select(DataTableDB)
+        .where(DataTableDB.datasource_id == ds_id)
+        .offset(offset)
+        .limit(limit)
+    )
+    dt_db = db.execute(query).scalars().all()
+    db.commit()
+    if len(dt_db) > 0:
+        return list(map(DataTableModel.from_orm, dt_db))
+    return []
 
 
 def create_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableModel]:

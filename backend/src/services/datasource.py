@@ -57,7 +57,7 @@ class DatasourceService:
         return 200, ds
 
     def get_datasource_tables(self, ds_id: UUID) -> Tuple[int, List[DataTableModel]]:
-        tables = ds_db.get_datasource_tables(self.db, ds_id)
+        tables = dt_db.get_datasource_tables(self.db, ds_id)
         return 200, tables
 
     def create_datasource(
