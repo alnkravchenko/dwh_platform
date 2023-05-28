@@ -1,14 +1,20 @@
+import json
 from typing import List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import UploadFile
 from repos import datasources as ds_db
 from repos import datatables as dt_db
-from schema.datasource import DatasourceCreate, DatasourceModel, DatasourceUpdate
-from schema.datatable import DataTableModel
+from schema.datasource import (
+    DatasourceCreate,
+    DatasourceModel,
+    DatasourceType,
+    DatasourceUpdate,
+)
+from schema.datatable import DataTableCreate, DataTableModel
 from schema.user import UserModel
-from services.query import QueryService
 from sqlalchemy.orm import Session
+from utils.databases import TableInfo, get_tables
 
 
 class DatasourceService:
@@ -16,24 +22,31 @@ class DatasourceService:
         self.db = db
         self.user = user
 
-    def __parse_tables(self, tables: List[str]) -> List[DataTableModel]:
-        res: List[DataTableModel] = []
-        return res
+    def __parse_to_datatable(self, ds_id, table: TableInfo) -> DataTableCreate:
+        table_name = table["table_name"]
+        columns = json.dumps(table["columns"])
+        return DataTableCreate(name=table_name, ds_id=ds_id, columns=columns)
 
-    # TODO: write a request to datasource and parse all tables with fields
-    def __request_tables_from_ds(self, ds: DatasourceModel) -> List[DataTableModel]:
-        query_service = QueryService(self.db, self.user)
-        data_tables: List[DataTableModel] = []
-        if ds.ds_type.value == "postgres":
-            database_name = ds.config["host"].split("/")[-1]
-            res = query_service.run_query(
-                ds.project_id,
-                "SELECT * FROM information_schema.tables"
-                + f"WHERE table_schema = '{database_name}'",
+    def __request_tables_from_ds(self, ds: DatasourceModel) -> List[DataTableCreate]:
+        if ds.ds_type == DatasourceType.DATATABLE or ds.ds_type == DatasourceType.FILE:
+            table = DataTableCreate(
+                name=ds.name, ds_id=ds.id, columns=ds.config["columns"]
             )
-            tables = res.split(",")
-            data_tables = self.__parse_tables(tables)
-        return data_tables
+            return [table]
+        else:
+            url = (
+                f"{ds.ds_type.value}://"
+                + f"{ds.config['username']}:{ds.config['password']}@"
+                + f"{ds.config['host']}"
+            )
+            tables = json.loads(ds.config["tables"])
+            # get information about tables
+            db_tables_info = get_tables(url, tables)
+            # parse result
+            data_tables = list(
+                map(lambda e: self.__parse_to_datatable(ds.id, e), db_tables_info)
+            )
+            return data_tables
 
     def validate_user_access(self, ds_id: UUID) -> Tuple[int, str]:
         # check if datasource exists
@@ -64,9 +77,8 @@ class DatasourceService:
         self, ds: DatasourceCreate, user_file: Optional[UploadFile] = None
     ) -> Tuple[int, str]:
         ds = ds_db.create_datasource(self.db, ds)
-        # create datasource tables in data warehouse
-        tables = self.__request_tables_from_ds(ds)
         # create tables in database
+        tables = self.__request_tables_from_ds(ds)
         dt_db.create_tables(self.db, tables)
         # fill tables with data
         if user_file is not None:
@@ -82,7 +94,7 @@ class DatasourceService:
         # add or update datasource tables into database
         tables = self.__request_tables_from_ds(new_ds)
         dt_db.update_tables(self.db, tables)
-        return 200, f"Datasource(id={ds_id}) fields updated"
+        return 200, f"Datasource(id={ds_id}) columns updated"
 
     def delete_datasource(self, ds_id: UUID) -> Tuple[int, str]:
         is_deleted = ds_db.delete_datasource_by_id(self.db, ds_id)
