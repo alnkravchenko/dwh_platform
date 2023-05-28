@@ -71,7 +71,7 @@ class DatasourceService:
         # fill tables with data
         if user_file is not None:
             user_file.file.read()
-        return 200, "Datasource created, tables added"
+        return 200, f"Datasource(id={ds.id}) created, tables added"
 
     def update_datasource(
         self, ds_id: UUID, new_data: DatasourceUpdate

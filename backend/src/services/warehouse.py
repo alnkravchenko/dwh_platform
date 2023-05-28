@@ -40,7 +40,7 @@ class WarehouseService:
         # check connection to spark cluster
         created_wh = wh_db.create_warehouse(self.db, wh)
         self.__add_datatables(created_wh, wh.datatables)
-        return 200, "Warehouse created"
+        return 200, f"Warehouse(id={created_wh.id})  created"
 
     def update_warehouse(
         self, wh_id: UUID, new_data: WarehouseUpdate

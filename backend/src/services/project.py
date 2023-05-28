@@ -33,8 +33,9 @@ class ProjectService:
         return 200, content
 
     def create_project(self, project: ProjectCreate) -> Tuple[int, str]:
-        proj_db.create_project(self.db, project, self.user.id)
-        return 200, "Project created"
+        proj = proj_db.create_project(self.db, project, self.user.id)
+        # TODO add node url connection check
+        return 200, f"Project(id={proj.id}) created"
 
     def update_project(
         self, project_id: UUID, new_data: ProjectUpdate
