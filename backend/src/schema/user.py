@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from string import ascii_letters, digits
 from typing import Tuple
 from uuid import UUID

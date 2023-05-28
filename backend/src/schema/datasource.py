@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import re
 from enum import Enum
@@ -17,7 +15,6 @@ class DatasourceType(str, Enum):
     DATATABLE = "datatable"
 
 
-# TODO: add config JSON validation that depends on ds_type
 class DatasourceCreate(BaseModel):
     name: str
     project_id: UUID
