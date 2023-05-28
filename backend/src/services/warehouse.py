@@ -1,9 +1,15 @@
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from uuid import UUID
 
+from repos import datatables as dt_db
 from repos import warehouses as wh_db
 from schema.user import UserModel
 from schema.warehouse import WarehouseCreate, WarehouseModel, WarehouseUpdate
+from schema.warehouseDatatable import (
+    DatatableType,
+    WarehouseDataTableCreate,
+    WarehouseDataTableModel,
+)
 from sqlalchemy.orm import Session
 
 
@@ -12,8 +18,30 @@ class WarehouseService:
         self.db = db
         self.user = user
 
-    def __add_datatables(self, wh: WarehouseModel, dts: List[UUID]):
-        pass
+    def __parse_datatables(
+        self, wh: WarehouseModel, dts: Dict[str, List[UUID]]
+    ) -> List[WarehouseDataTableCreate]:
+        tables: List[WarehouseDataTableCreate] = []
+        wh_id = wh.id
+        for dt_type, dt_ids in dts.items():
+            for dt_id in dt_ids:
+                table = WarehouseDataTableCreate(
+                    warehouse_id=wh_id,
+                    datatable_id=dt_id,
+                    dt_type=DatatableType(dt_type),
+                )
+                tables.append(table)
+        return tables
+
+    def __add_datatables(
+        self, wh: WarehouseModel, dts: Dict[str, List[UUID]]
+    ) -> List[WarehouseDataTableModel]:
+        tables = self.__parse_datatables(wh, dts)
+        return dt_db.create_warehouse_tables(self.db, tables)
+
+    def __update_datatables(self, wh: WarehouseModel, dts: Dict[str, List[UUID]]):
+        tables = self.__parse_datatables(wh, dts)
+        return dt_db.update_warehouse_tables(self.db, tables)
 
     def validate_user_access(self, wh_id: UUID) -> Tuple[int, str]:
         # check if warehouse exists
@@ -40,7 +68,7 @@ class WarehouseService:
         # check connection to spark cluster
         created_wh = wh_db.create_warehouse(self.db, wh)
         self.__add_datatables(created_wh, wh.datatables)
-        return 200, f"Warehouse(id={created_wh.id})  created"
+        return 200, f"Warehouse(id={created_wh.id}) created"
 
     def update_warehouse(
         self, wh_id: UUID, new_data: WarehouseUpdate
@@ -49,8 +77,8 @@ class WarehouseService:
         if new_wh is None:
             return 400, "Bad request"
         if new_data.datatables is not None:
-            self.__add_datatables(new_wh, new_data.datatables)
-        return 200, f"Warehouse(id={wh_id}) updated"
+            self.__update_datatables(new_wh, new_data.datatables)
+        return 200, f"Warehouse(id={wh_id}) updated, data table types changed"
 
     def delete_warehouse(self, wh_id: UUID) -> Tuple[int, str]:
         is_deleted = wh_db.delete_warehouse_by_id(self.db, wh_id)
