@@ -30,7 +30,7 @@ def create_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableM
     created_tables: List[DataTableModel] = []
     for table in tables:
         # create a new table
-        dt_db = DataTableDB(name=table.name, datasource_id=ds_id, fields=table.fields)
+        dt_db = DataTableDB(name=table.name, datasource_id=ds_id, columns=table.columns)
         # add the new table to the list
         db.add(dt_db)
         created_tables.append(DataTableModel.from_orm(dt_db))
@@ -60,7 +60,7 @@ def update_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableM
                 .returning(DataTableDB)
                 .where(DataTableDB.datasource_id == ds_id)
                 .where(DataTableDB.name == table.name)
-                .values(fields=table.fields)
+                .values(columns=table.columns)
             )
             # add the updated table to the list
             updated_dt = DataTableModel.from_orm(dt_db)
@@ -68,7 +68,7 @@ def update_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableM
         else:
             # create a new table
             new_dt = DataTableDB(
-                name=table.name, datasource_id=ds_id, fields=table.fields
+                name=table.name, datasource_id=ds_id, columns=table.columns
             )
             # add the new table to the list
             db.add(new_dt)

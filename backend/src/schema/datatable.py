@@ -1,4 +1,3 @@
-from typing import Dict
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -7,7 +6,7 @@ from pydantic import BaseModel
 class DataTableCreate(BaseModel):
     name: str
     ds_id: UUID
-    fields: Dict[str, str]
+    columns: str
 
     class Config:
         orm_mode = True

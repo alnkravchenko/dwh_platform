@@ -25,7 +25,7 @@ class DataTableDB(Base):
         nullable=False,
         index=True,
     )
-    fields = Column(JSONB, nullable=False)
+    columns = Column(JSONB, nullable=False)
 
     warehouse = relationship(
         "WarehouseDataTableDB", cascade="all, delete", back_populates="datatables"
