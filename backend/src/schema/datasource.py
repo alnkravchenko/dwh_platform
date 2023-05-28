@@ -34,13 +34,16 @@ class DatasourceCreate(BaseModel):
             is_json = "json" in v["filename"]
             if not is_csv and not is_json:
                 raise ValueError("Only CSV and JSON files are supported")
-        elif cls.ds_type == DatasourceType.DATATABLE:
-            has_fields = "fields" in keys
+        if (
+            cls.ds_type == DatasourceType.DATATABLE
+            or cls.ds_type == DatasourceType.FILE
+        ):
+            has_fields = "columns" in keys
             if not has_fields:
-                raise ValueError("Config must contain table fields")
+                raise ValueError("Config must contain table column names")
 
             check_fields: List[bool] = []
-            for field in v["fields"]:
+            for field in v["columns"]:
                 parsed: Dict[str, str] = json.loads(field)
                 keys = parsed.keys()
                 has_name = "name" in keys
@@ -49,10 +52,10 @@ class DatasourceCreate(BaseModel):
             if not all(check_fields):
                 raise ValueError(
                     "Field list must contain objects with field name and field type."
-                    + 'Example: \n{"fields": [ \n{"name": "field1", "type": "int"}, '
-                    + '\n{"name": "field2", "type": "str"}, '
-                    + '\n{"name": "field3", "type": "double"}, '
-                    + '\n{"name": "field4", "type": "bool"} \n]}'
+                    + 'Example: \n{"columns": [ \n{"name": "col1", "type": "int"}, '
+                    + '\n{"name": "col2", "type": "str"}, '
+                    + '\n{"name": "col3", "type": "double"}, '
+                    + '\n{"name": "col4", "type": "bool"} \n]}'
                 )
         else:
             has_host = "host" in keys
