@@ -25,25 +25,33 @@ def get_datasource_tables(
     return []
 
 
+def get_table_by_id(db: Session, dt_id: UUID) -> DataTableModel | None:
+    query = select(DataTableDB).where(DataTableDB.id == dt_id)
+    dt_db = db.execute(query).scalar()
+    db.commit()
+    if dt_db is not None:
+        return DataTableModel.from_orm(dt_db)
+
+
 def create_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableModel]:
-    ds_id = tables[0].ds_id
-    created_tables: List[DataTableModel] = []
+    ds_id = tables[0].datasource_id
+    created_tables: List[DataTableDB] = []
     for table in tables:
         # create a new table
         dt_db = DataTableDB(name=table.name, datasource_id=ds_id, columns=table.columns)
         # add the new table to the list
         db.add(dt_db)
-        created_tables.append(DataTableModel.from_orm(dt_db))
+        created_tables.append(dt_db)
     # commit the changes to the database
     db.commit()
-    return created_tables
+    return list(map(DataTableModel.from_orm, created_tables))
 
 
 def update_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableModel]:
     """
     Create or replace if datasource tables exist
     """
-    ds_id = tables[0].ds_id
+    ds_id = tables[0].datasource_id
     updated_tables = []
     # get the list of existing table names
     existing_table_names = [
@@ -63,8 +71,7 @@ def update_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableM
                 .values(columns=table.columns)
             )
             # add the updated table to the list
-            updated_dt = DataTableModel.from_orm(dt_db)
-            updated_tables.append(updated_dt)
+            updated_tables.append(dt_db)
         else:
             # create a new table
             new_dt = DataTableDB(
@@ -72,17 +79,17 @@ def update_tables(db: Session, tables: List[DataTableCreate]) -> List[DataTableM
             )
             # add the new table to the list
             db.add(new_dt)
-            updated_tables.append(DataTableModel.from_orm(new_dt))
+            updated_tables.append(new_dt)
     # commit the changes to the database
     db.commit()
-    return updated_tables
+    return list(map(DataTableModel.from_orm, updated_tables))
 
 
 def create_warehouse_tables(
     db: Session, tables: List[WarehouseDataTableCreate]
 ) -> List[WarehouseDataTableModel]:
     wh_id = tables[0].warehouse_id
-    created_tables: List[WarehouseDataTableModel] = []
+    created_tables: List[WarehouseDataTableDB] = []
     for table in tables:
         # create a new table
         whdt_db = WarehouseDataTableDB(
@@ -92,10 +99,10 @@ def create_warehouse_tables(
         )
         # add the new table to the list
         db.add(whdt_db)
-        created_tables.append(WarehouseDataTableModel.from_orm(whdt_db))
+        created_tables.append(whdt_db)
     # commit the changes to the database
     db.commit()
-    return created_tables
+    return list(map(WarehouseDataTableModel.from_orm, created_tables))
 
 
 def update_warehouse_tables(
@@ -117,27 +124,26 @@ def update_warehouse_tables(
     ]
     for table in tables:
         if table.datatable_id in existing_datatables_ids:
-            # update the existing table with the new data
-            whdt_db = db.execute(
-                update(WarehouseDataTableDB)
-                .returning(WarehouseDataTableDB)
-                .where(WarehouseDataTableDB.warehouse_id == wh_id)
-                .where(WarehouseDataTableDB.datatable_id == table.datatable_id)
-                .values(dt_type=table.dt_type)
-            )
-            # add the updated table to the list
-            updated_whdt = WarehouseDataTableModel.from_orm(whdt_db)
-            updated_tables.append(updated_whdt)
-        else:
-            # create a new table
-            new_whdt = WarehouseDataTableDB(
-                warehouse_id=wh_id,
-                datatable_id=table.datatable_id,
-                dt_type=table.dt_type,
-            )
-            # add the new table to the list
-            db.add(new_whdt)
-            updated_tables.append(WarehouseDataTableModel.from_orm(new_whdt))
+            continue
+            # # update the existing table with the new data
+            # whdt_db = db.execute(
+            #     update(WarehouseDataTableDB)
+            #     .returning(WarehouseDataTableDB)
+            #     .where(WarehouseDataTableDB.warehouse_id == wh_id)
+            #     .where(WarehouseDataTableDB.datatable_id == table.datatable_id)
+            #     .values(dt_type=table.dt_type)
+            # )
+            # # add the updated table to the list
+            # updated_tables.append(whdt_db)
+        # create a new table
+        new_whdt = WarehouseDataTableDB(
+            warehouse_id=wh_id,
+            datatable_id=table.datatable_id,
+            dt_type=table.dt_type,
+        )
+        # add the new table to the list
+        db.add(new_whdt)
+        updated_tables.append(new_whdt)
     # commit the changes to the database
     db.commit()
-    return updated_tables
+    return list(map(WarehouseDataTableModel.from_orm, updated_tables))
