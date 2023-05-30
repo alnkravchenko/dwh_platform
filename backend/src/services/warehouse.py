@@ -48,7 +48,7 @@ class WarehouseService:
             return False, msg
         log.info("[DWH CREATE] Tables added to Spark cluster")
         # ingest data from the tables
-        status, msg = query_service.ingest_data(tables)
+        status, msg = query_service.ingest_data(wh.project_id, tables)
         if not status:
             return False, msg
         log.info("[DWH CREATE] Data ingested to Spark cluster")
