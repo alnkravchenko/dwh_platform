@@ -3,6 +3,7 @@ from uuid import UUID
 
 import structlog
 import utils.spark_helpers as spk
+from fastapi import UploadFile
 from repos import datasources as ds_db
 from repos import datatables as dt_db
 from repos import projects as proj_db
@@ -48,7 +49,13 @@ class QueryService:
             result.append((ds, data[str(ds.id)]))  # type: ignore
         return result
 
-    def validate_query(self, project_id: UUID, query: str) -> Tuple[bool, str]:
+    def validate_file(self, file: UploadFile) -> Tuple[int, str]:
+        file_type = file.filename.split(".")[-1]
+        if file_type not in ["csv", "json"]:
+            return 400, "Invalid file format. Only CSV and JSON formats are available."
+        return 200, "OK"
+
+    def validate_query(self, project_id: UUID, query: str) -> Tuple[int, str]:
         """
         Validate the syntax and validity of a PySpark query
         on node without executing it
