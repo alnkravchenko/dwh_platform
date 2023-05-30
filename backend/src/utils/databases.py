@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 from typing import Dict, List, Tuple, TypedDict
@@ -225,51 +226,68 @@ def get_tables(database_url: str, tables: List[str]) -> List[TableInfo]:
     raise ValueError("Unsupported database URL")
 
 
-def read_from_postgres(url: str, table_name: str):
+def read_from_postgres(url: str, columns: List[str], table_name: str):
     conn = create_postgres_connection(url)
     cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM {table_name}")
+    cursor.execute(f"SELECT {','.join(columns)} FROM {table_name}")
     data = cursor.fetchall()
     # Write data to a file
-    filepath = os.path.join("tmp", f"{uuid.uuid4().hex}.csv")
+    cwd = os.getcwd()
+    filepath = os.path.join(cwd, "utils", "tmp", f"{uuid.uuid4().hex}.csv")
     with open(filepath, "w") as file:
         for row in data:
             file.write(",".join(map(str, row)) + "\n")
+    # close connection
     cursor.close()
     conn.close()
     return filepath
 
 
-def read_from_mysql(url: str, table_name: str):
+def read_from_mysql(url: str, columns: List[str], table_name: str):
     conn = create_mysql_connection(url)
     cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM {table_name}")
+    cursor.execute(f"SELECT {','.join(columns)} FROM {table_name}")
     data = cursor.fetchall()
     # Write data to a file
-    filepath = os.path.join("tmp", f"{uuid.uuid4().hex}.csv")
+    cwd = os.getcwd()
+    filepath = os.path.join(cwd, "utils", "tmp", f"{uuid.uuid4().hex}.csv")
     with open(filepath, "w") as file:
         for row in data:
             file.write(",".join(map(str, row)) + "\n")
+    # close connection
     cursor.close()
     conn.close()
     return filepath
 
 
-def read_from_mongodb(url: str, table_name: str) -> str:
+def parse_mongodb_data(data):
+    res = []
+    for document in data:
+        line: Dict = json.loads(json.dumps(document, default=str))
+        line.pop("_id", None)
+        res.append(line)
+    return res
+
+
+def read_from_mongodb(url: str, columns: List[str], table_name: str) -> str:
     client, db_name = create_mongodb_connection(url)
     db = client[db_name]
     collection = db[table_name]
-    data = collection.find()
+    data = collection.find({}, {column: 1 for column in columns})
+    json_data = parse_mongodb_data(data)
     # Write data to a file
-    filepath = os.path.join("tmp", f"{uuid.uuid4().hex}.json")
+    cwd = os.getcwd()
+    filepath = os.path.join(cwd, "utils", "tmp", f"{uuid.uuid4().hex}.json")
     with open(filepath, "w") as file:
-        for document in data:
-            file.write(str(document) + "\n")
+        json.dump(json_data, file)
+        # for document in data:
+        #     file.write(str(document) + "\n")
+    # close connection
     client.close()
     return filepath
 
 
-def read_from_db(url: str, table_name: str) -> str:
+def read_from_db(url: str, columns: List[str], table_name: str) -> str:
     database_functions = {
         "postgres://": read_from_postgres,
         "postgresql://": read_from_postgres,
@@ -278,7 +296,7 @@ def read_from_db(url: str, table_name: str) -> str:
     }
     for prefix, read_from in database_functions.items():
         if url.startswith(prefix):
-            file_path = read_from(url, table_name)
+            file_path = read_from(url, columns, table_name)
             return file_path
 
     raise ValueError("Unsupported database URL")

@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple
 from uuid import UUID
 
+import structlog
 from repos import datatables as dt_db
 from repos import warehouses as wh_db
 from schema.user import UserModel
@@ -12,6 +13,8 @@ from schema.warehouseDatatable import (
 )
 from services.query import QueryService
 from sqlalchemy.orm import Session
+
+log = structlog.get_logger(module=__name__)
 
 
 class WarehouseService:
@@ -34,7 +37,6 @@ class WarehouseService:
                 tables.append(table)
         return tables
 
-    # TODO: write integration with Spark cluster
     def __add_datatables(
         self, wh: WarehouseModel, dts: Dict[str, List[UUID]]
     ) -> Tuple[bool, str | List[WarehouseDataTableModel]]:
@@ -44,10 +46,12 @@ class WarehouseService:
         status, msg = query_service.add_tables(tables)
         if not status:
             return False, msg
+        log.info("[DWH CREATE] Tables added to Spark cluster")
         # ingest data from the tables
         status, msg = query_service.ingest_data(tables)
         if not status:
             return False, msg
+        log.info("[DWH CREATE] Data ingested to Spark cluster")
         return True, dt_db.create_warehouse_tables(self.db, tables)
 
     def __update_datatables(self, wh: WarehouseModel, dts: Dict[str, List[UUID]]):
