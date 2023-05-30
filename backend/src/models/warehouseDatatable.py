@@ -10,7 +10,7 @@ from .warehouse import WarehouseDB
 
 
 class WarehouseDataTableDB(Base):
-    __tablename__ = "WarehouseDatatables"
+    __tablename__ = "WarehouseDataTables"
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -31,12 +31,12 @@ class WarehouseDataTableDB(Base):
     )
     dt_type = Column(
         Enum(
-            "fact_table",
-            "dimension_table",
+            "fact",
+            "dimension",
             name="datatable_type",
         ),
         nullable=False,
     )
 
-    warehouse = relationship(WarehouseDB, back_populates="datatables")
-    datatables = relationship(DataTableDB, back_populates="warehouse")
+    warehouse = relationship(WarehouseDB, back_populates="warehouseDatatables")
+    datatables = relationship(DataTableDB, back_populates="warehouseDatatables")

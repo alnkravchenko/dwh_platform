@@ -27,6 +27,6 @@ class WarehouseDB(Base):
     )
 
     project = relationship(ProjectDB, back_populates="warehouse")
-    # datatables = relationship(
-    #     "WarehouseDataTableDB", cascade="all,delete", back_populates="warehouse"
-    # )
+    warehouseDatatables = relationship(
+        "WarehouseDataTableDB", cascade="all,delete", back_populates="warehouse"
+    )
