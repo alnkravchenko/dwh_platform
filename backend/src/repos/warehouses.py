@@ -4,6 +4,7 @@ from uuid import UUID
 from models.project import ProjectDB
 from models.user import UserDB
 from models.warehouse import WarehouseDB
+from models.warehouseDatatable import WarehouseDataTableDB
 from schema.user import UserModel
 from schema.warehouse import WarehouseCreate, WarehouseModel, WarehouseUpdate
 from sqlalchemy import delete, select, update
@@ -25,7 +26,33 @@ def get_user_warehouses(
     wh_db = db.execute(query).scalars().all()
     db.commit()
     if len(wh_db) > 0:
-        return list(map(WarehouseModel.from_orm, wh_db))
+        data = []
+        for wh in wh_db:
+            tables_db = db.execute(
+                select(WarehouseDataTableDB.id, WarehouseDataTableDB.dt_type).where(
+                    WarehouseDataTableDB.warehouse_id == wh.id
+                )
+            ).all()
+            fact_tables = list(
+                map(lambda e: e[0], filter(lambda t: t[1] == "fact", tables_db))
+            )
+            dimension_tables = list(
+                map(lambda e: e[0], filter(lambda t: t[1] == "dimension", tables_db))
+            )
+            tables = {"fact": fact_tables, "dimension": dimension_tables}
+            data.append({"warehouse": wh, "tables": tables})
+        db.commit()
+        wh_models = []
+        for record in data:
+            warehouse = record["warehouse"]
+            model = WarehouseModel(
+                id=warehouse.id,  # type: ignore
+                name=warehouse.name,  # type: ignore
+                project_id=warehouse.project_id,  # type: ignore
+                datatables=record["tables"],
+            )
+            wh_models.append(model)
+        return wh_models
     return []
 
 
@@ -50,7 +77,13 @@ def get_warehouse_owner(db: Session, wh_id: UUID) -> UserModel | None:
 
 def create_warehouse(db: Session, wh: WarehouseCreate) -> WarehouseModel:
     wh_db = WarehouseDB(name=wh.name, project_id=wh.project_id)
-    return WarehouseModel.from_orm(create_entity(db, wh_db))
+    wh_created: WarehouseDB = create_entity(db, wh_db)  # type: ignore
+    return WarehouseModel(
+        id=wh_created.id,  # type: ignore
+        name=wh_created.name,  # type: ignore
+        project_id=wh_created.project_id,  # type: ignore
+        datatables=wh.datatables,
+    )
 
 
 def update_warehouse(
