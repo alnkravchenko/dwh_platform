@@ -1,10 +1,14 @@
 from typing import List
 from uuid import UUID
 
+from models.datasource import DatasourceDB
 from models.project import ProjectDB
 from models.user import UserDB
+from models.warehouse import WarehouseDB
+from schema.datasource import DatasourceModel
 from schema.project import ProjectContent, ProjectCreate, ProjectModel, ProjectUpdate
 from schema.user import UserModel
+from schema.warehouse import WarehouseModel
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
@@ -35,19 +39,40 @@ def get_project_by_id(db: Session, proj_id: UUID) -> ProjectModel | None:
         return ProjectModel.from_orm(proj_db)
 
 
+def get_project_by_wh_id(db: Session, wh_id: UUID) -> ProjectModel | None:
+    query = (
+        select(ProjectDB)
+        .join(WarehouseDB, ProjectDB.id == WarehouseDB.project_id)
+        .where(WarehouseDB.id == wh_id)
+    )
+    proj_db = db.execute(query).scalar()
+    db.commit()
+    if proj_db is not None:
+        return ProjectModel.from_orm(proj_db)
+
+
 def get_content(db: Session, user_id: UUID, project_id: UUID) -> ProjectContent | None:
     query = (
         select(ProjectDB)
         .where(ProjectDB.created_by == user_id)
         .where(ProjectDB.id == project_id)
     )
-    project_db = db.execute(query).scalar()
-    if project_db is not None:
-        return ProjectContent.from_orm(project_db)
-    # ds_query = select(DatasourceDB).where(DatasourceDB.project_id == project_id)
-    # datasources: List[DatasourceModel] = list(db.execute(ds_query).scalars().all())
+    proj_db = db.execute(query).scalar()
+    # get datasources
+    ds_query = select(DatasourceDB).where(DatasourceDB.project_id == project_id)
+    ds_db = db.execute(ds_query).scalars().all()
+    # get warehouse
+    warehouse_query = select(WarehouseDB).where(WarehouseDB.project_id == project_id)
+    wh_db = db.execute(warehouse_query).scalar()
 
-    # warehouse_query = select(WarehouseDB)
+    ds = []
+    if ds_db is not None:
+        ds = list(map(DatasourceModel.from_orm, ds_db))
+    wh = None
+    if wh_db is not None:
+        wh = WarehouseModel.from_orm(wh_db)
+    if proj_db is not None:
+        return ProjectContent(id=proj_db.id, warehouse=wh, datasources=ds)  # type: ignore
 
 
 def get_project_owner(db: Session, project_id: UUID) -> UserModel | None:
