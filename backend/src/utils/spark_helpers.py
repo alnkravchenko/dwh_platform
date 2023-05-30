@@ -15,7 +15,8 @@ from pyspark.sql.types import (
 )
 from schema.datasource import DatasourceModel
 from schema.datatable import DataTableModel
-from utils.databases import ColumnInfo
+
+from . import databases as db_utils
 
 
 def setup_connection(url: str) -> SparkSession:  # type: ignore
@@ -32,7 +33,9 @@ def setup_connection(url: str) -> SparkSession:  # type: ignore
 
 
 def run_query(spark: SparkSession, query: str) -> List[str]:
-    return spark.sql(query).toJSON().collect()
+    df = spark.sql(query).collect()
+    res = list(map(lambda e: str(e.asDict()), df))
+    return res
 
 
 def create_schema(columns: List[db_utils.ColumnInfo]) -> StructType:

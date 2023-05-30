@@ -81,18 +81,12 @@ class QueryService:
         EFFECTS:
         * creates spark session
         """
-        proj = proj_db.get_project_by_id(self.db, project_id)
-        # validate user access
-        proj_service = ProjectService(self.db, self.user)
-        status_code, msg = proj_service.validate_user_access(project_id)
-        if status_code != 200:
-            return False, msg
-        node_url = proj.node_url  # type: ignore
+        node_url = self.__get_node_url(project_id)
         # create spark session
         spark_session = spk.setup_connection(node_url)
         try:
             res = spk.run_query(spark_session, query)
-            return True, self.parse_results(res)
+            return True, res
         except Exception as e:
             return False, str(e)
         finally:
