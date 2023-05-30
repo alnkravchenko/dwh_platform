@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.base import Base
 from repos.database import engine
-from routers import auth, datasources, projects, query, warehouses
+from routers import auth, datasources, datatables, projects, query, warehouses
 from utils import settings as config
 
 # Create and configure the app
@@ -39,6 +39,7 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(datasources.router)
+app.include_router(datatables.router)
 app.include_router(warehouses.router)
 app.include_router(query.router)
 
