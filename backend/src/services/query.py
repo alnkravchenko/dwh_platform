@@ -119,18 +119,16 @@ class QueryService:
         finally:
             spark_session.stop()
 
-    def ingest_data(self, tables: List[WarehouseDataTableCreate]) -> Tuple[bool, str]:
+    def ingest_data(
+        self, project_id: UUID, tables: List[WarehouseDataTableCreate]
+    ) -> Tuple[bool, str]:
         """
         Ingest data from warehouse tables to spark cluster
 
         EFFECTS:
         * creates spark session
         """
-        # get node_url
-        proj: ProjectModel = proj_db.get_project_by_wh_id(
-            self.db, tables[0].warehouse_id
-        )  # type: ignore
-        node_url = proj.node_url
+        node_url = self.__get_node_url(project_id)
         # select datatables
         datatables: List[DataTableModel] = [
             dt_db.get_table_by_id(self.db, wh_dt.datatable_id) for wh_dt in tables
@@ -143,6 +141,8 @@ class QueryService:
         spark_session = spk.setup_connection(node_url)
         try:
             for ds, dstables in ds_grouped:
+                if ds.ds_type.value == "datatable":
+                    continue
                 spk.ingest_data(spark_session, ds, dstables)
             return True, "Data from tables ingested"
         except Exception as e:
