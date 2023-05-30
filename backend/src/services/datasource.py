@@ -1,5 +1,4 @@
-import json
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from uuid import UUID
 
 from fastapi import UploadFile
@@ -24,14 +23,13 @@ class DatasourceService:
 
     def __parse_to_datatable(self, ds_id, table: TableInfo) -> DataTableCreate:
         table_name = table["table_name"]
-        columns = json.dumps(table["columns"])
-        return DataTableCreate(name=table_name, ds_id=ds_id, columns=columns)
+        columns: List[Dict[str, str]] = table["columns"]  # type: ignore
+        return DataTableCreate(name=table_name, datasource_id=ds_id, columns=columns)
 
     def __request_tables_from_ds(self, ds: DatasourceModel) -> List[DataTableCreate]:
         if ds.ds_type == DatasourceType.DATATABLE or ds.ds_type == DatasourceType.FILE:
-            table = DataTableCreate(
-                name=ds.name, ds_id=ds.id, columns=ds.config["columns"]
-            )
+            columns: List[Dict[str, str]] = ds.config["columns"]  # type: ignore
+            table = DataTableCreate(name=ds.name, datasource_id=ds.id, columns=columns)
             return [table]
         else:
             url = (
@@ -39,7 +37,7 @@ class DatasourceService:
                 + f"{ds.config['username']}:{ds.config['password']}@"
                 + f"{ds.config['host']}"
             )
-            tables = json.loads(ds.config["tables"])
+            tables = ds.config["tables"].split(",")
             # get information about tables
             db_tables_info = get_tables(url, tables)
             # parse result
