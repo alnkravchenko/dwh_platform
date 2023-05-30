@@ -58,22 +58,23 @@ class QueryService:
         """
         proj = proj_db.get_project_by_id(self.db, project_id)
         # validate user access
-        status_code, msg = ProjectService(self.db, self.user).validate_user_access(
-            project_id
-        )
+        proj_service = ProjectService(self.db, self.user)
+        status_code, msg = proj_service.validate_user_access(project_id)
         if status_code != 200:
             return False, msg
         node_url = proj.node_url  # type: ignore
         # create spark session
-        spark_session = self.__setup_connection(node_url)
+        spark_session = spk.setup_connection(node_url)
         # check query
         try:
             spark_session.sql(f"EXPLAIN {query}")
             return True, "OK"
         except Exception as e:
             return False, str(e)
+        finally:
+            spark_session.stop()
 
-    def run_query(self, project_id: UUID, query: str) -> str:
+    def run_query(self, project_id: UUID, query: str):
         """
         Run user query
 
@@ -81,7 +82,21 @@ class QueryService:
         * creates spark session
         """
         proj = proj_db.get_project_by_id(self.db, project_id)
+        # validate user access
+        proj_service = ProjectService(self.db, self.user)
+        status_code, msg = proj_service.validate_user_access(project_id)
+        if status_code != 200:
+            return False, msg
         node_url = proj.node_url  # type: ignore
+        # create spark session
+        spark_session = spk.setup_connection(node_url)
+        try:
+            res = spk.run_query(spark_session, query)
+            return True, self.parse_results(res)
+        except Exception as e:
+            return False, str(e)
+        finally:
+            spark_session.stop()
 
     def add_tables(self, tables: List[WarehouseDataTableCreate]) -> Tuple[bool, str]:
         # get node_url
@@ -134,15 +149,32 @@ class QueryService:
         finally:
             spark_session.stop()
 
-    def read_data(self, ds: DatasourceModel, query: str) -> str:
+    def read_data(self, ds: DatasourceModel, query: str):
         """
         Read data from the datasource
 
         EFFECTS:
         * creates spark session
         """
-        # create connections regarding data source type
-        return ""
+        # get node_url
+        proj: ProjectModel = proj_db.get_project_by_id(
+            self.db, ds.project_id
+        )  # type: ignore
+        # validate user access
+        proj_service = ProjectService(self.db, self.user)
+        status_code, msg = proj_service.validate_user_access(proj.id)
+        if status_code != 200:
+            return False, msg
+        node_url = proj.node_url  # type: ignore
+        # run spark queries
+        spark_session = spk.setup_connection(node_url)
+        try:
+            data = spk.run_query(spark_session, query)
+            return True, self.parse_results(data)
+        except Exception as e:
+            return False, str(e)
+        finally:
+            spark_session.stop()
 
     def parse_results(self, data) -> str:
         return str(data)
