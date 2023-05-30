@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Dict, List
 
 import pandas as pd
 from delta.pip_utils import configure_spark_with_delta_pip
@@ -80,16 +80,17 @@ def ingest_data(spark: SparkSession, ds: DatasourceModel, tables: List[DataTable
     )
     for table in tables:
         # get data into file
-        columns = [item["name"] for item in table.columns]
-        schema = create_schema(table.columns)  # type: ignore
-        filepath = db_utils.read_from_db(ds_url, columns, table.name)
-        # ingest data
-        file_format = filepath.split(".")[-1]
-        if file_format.lower() == "json":
-            df = pd.read_json(filepath)
-        else:
-            df = pd.read_csv(filepath)
-        df_spark = spark.createDataFrame(df, schema)
-        df_spark.write.format("delta").mode("append").saveAsTable(table.name)
-        # delete file
+        filepath, df = db_utils.from_table_to_file(ds_url, table)
+        ingest_from_file(spark, df, table.columns, table.name)
         os.unlink(filepath)
+
+
+def ingest_from_file(
+    spark: SparkSession,
+    df: pd.DataFrame,
+    columns: List[Dict[str, str]],
+    table_name: str,
+):
+    schema = create_schema(columns)  # type: ignore
+    df_spark = spark.createDataFrame(df, schema)
+    df_spark.write.format("delta").mode("append").saveAsTable(table_name)
