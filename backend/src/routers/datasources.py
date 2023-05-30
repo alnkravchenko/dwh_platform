@@ -1,8 +1,9 @@
-from typing import Dict, Optional
+from typing import Dict
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from repos.database import get_db
 from schema.datasource import DatasourceCreate, DatasourceType, DatasourceUpdate
@@ -24,7 +25,9 @@ def get_all_datasources(
     ds_service = DatasourceService(db, user)
     datasources = ds_service.get_user_datasources()
     log.info("[GET ALL] 200")
-    return JSONResponse(content={"details": datasources}, status_code=200)
+    return JSONResponse(
+        content={"details": jsonable_encoder(datasources)}, status_code=200
+    )
 
 
 @router.get("/types", response_model=Dict[str, str])
@@ -45,19 +48,23 @@ def get_datasource(
         return JSONResponse(content={"details": msg}, status_code=status_code)
 
     status_code, msg = ds_service.get_datasource_by_id(ds_id)
+    log_msg = msg
     # create response
-    log.info(f"[GET] {status_code} {msg}")
+    if status_code == 200:
+        log_msg = msg.id  # type: ignore
+    log.info(f"[GET] {status_code} {log_msg}")
     return JSONResponse(content={"details": msg}, status_code=status_code)
 
 
 @router.post("/")
 def create_datasource(
     ds: DatasourceCreate,
-    file: Optional[UploadFile],
+    # file: UploadFile = File(None),
     user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> JSONResponse:
     # check user access
+    log.info(ds)
     proj_service = ProjectService(db, user)
     status_code, msg = proj_service.validate_user_access(ds.project_id)
     if status_code != 200:
@@ -65,6 +72,7 @@ def create_datasource(
         return JSONResponse(content={"details": msg}, status_code=status_code)
 
     ds_service = DatasourceService(db, user)
+    file = None
     status_code, msg = ds_service.create_datasource(ds, file)
     # create response
     log.info(f"[CREATE] {status_code} {msg}")

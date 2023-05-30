@@ -2,6 +2,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from repos.database import get_db
 from schema.project import ProjectCreate, ProjectUpdate
@@ -22,7 +23,9 @@ def get_all_projects(
     proj_service = ProjectService(db, user)
     projects = proj_service.get_user_projects()
     log.info("[GET ALL] 200")
-    return JSONResponse(content={"details": projects}, status_code=200)
+    return JSONResponse(
+        content={"details": jsonable_encoder(projects)}, status_code=200
+    )
 
 
 @router.get("/{project_id}")
@@ -38,9 +41,14 @@ def get_project_content(
         return JSONResponse(content={"details": msg}, status_code=status_code)
 
     status_code, msg = proj_service.get_project_content(project_id)
+    log_msg = msg
     # create response
-    log.info(f"[GET CONTENT] {status_code} {msg}")
-    return JSONResponse(content={"details": msg}, status_code=status_code)
+    if status_code == 200:
+        log_msg = msg.id  # type: ignore
+    log.info(f"[GET CONTENT] {status_code} {log_msg}")
+    return JSONResponse(
+        content={"details": jsonable_encoder(msg)}, status_code=status_code
+    )
 
 
 @router.post("/")

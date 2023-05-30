@@ -2,6 +2,7 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from repos.database import get_db
 from routers.users import get_current_user
@@ -22,7 +23,9 @@ def get_all_warehouses(
     wh_service = WarehouseService(db, user)
     warehouses = wh_service.get_user_warehouses()
     log.info("[GET ALL] 200")
-    return JSONResponse(content={"details": warehouses}, status_code=200)
+    return JSONResponse(
+        content={"details": jsonable_encoder(warehouses)}, status_code=200
+    )
 
 
 @router.get("/{wh_id}")
@@ -38,7 +41,11 @@ def get_warehouse(
         return JSONResponse(content={"details": msg}, status_code=status_code)
 
     status_code, msg = wh_service.get_warehouse(wh_id)
-    log.info(f"[GET] {status_code} {msg}")
+    log_msg = msg
+    # create response
+    if status_code == 200:
+        log_msg = msg.id  # type: ignore
+    log.info(f"[GET] {status_code} {log_msg}")
     return JSONResponse(content={"details": msg}, status_code=status_code)
 
 
