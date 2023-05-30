@@ -1,10 +1,13 @@
+from uuid import UUID
+
 import structlog
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, Form, UploadFile
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from repos import projects as proj_db
 from repos.database import get_db
-from schema.query import QueryModel, QueryWrite
+from schema.query import QueryModel
 from schema.user import UserModel
+from services.project import ProjectService
 from services.query import QueryService
 from sqlalchemy.orm import Session
 
@@ -20,20 +23,24 @@ def run_query(
     user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> JSONResponse:
-    proj = proj_db.get_project_by_id(db, query.project_id)
-    if proj is None:
-        log.info("[QUERY] 404 Not found")
-        return JSONResponse(content={"details": "Not found"}, status_code=404)
-    # check user access
-    if proj.created_by != user.id:
-        log.info("[QUERY] 401 Unauthorized")
-        return JSONResponse(content={"details": "Unauthorized"}, status_code=401)
+    proj_service = ProjectService(db, user)
+    status_code, msg = proj_service.validate_user_access(query.project_id)
+    if status_code != 200:
+        log.info(f"[RUN QUERY] {status_code} {msg}")
+        return JSONResponse(content={"details": msg}, status_code=status_code)
     # validate query on master node
     query_service = QueryService(db, user)
-    QueryModel.validate_query(query, query_service, logger=log, prefix="[QUERY]")
+    status_code, msg = query_service.validate_query(query.project_id, query.query)
+    if status_code != 200:
+        log.info(f"[RUN QUERY] {status_code} {msg}")
+        return JSONResponse(content={"details": msg}, status_code=status_code)
     # process query
-    res = query_service.run_query(query.project_id, query.query)
-    return JSONResponse(content={"details": res}, status_code=200)
+    status, msg = query_service.run_query(query.project_id, query.query)
+    if not status:
+        log.info(f"[RUN QUERY] 400 {msg}")
+        return JSONResponse(content={"details": msg}, status_code=400)
+    log.info("[RUN QUERY] 200 OK")
+    return JSONResponse(content={"details": jsonable_encoder(msg)}, status_code=200)
 
 
 @router.post("/read")
@@ -42,16 +49,49 @@ def read_data(
     user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> JSONResponse:
-    msg = "OK"
-    return JSONResponse(content={"details": msg}, status_code=200)
+    proj_service = ProjectService(db, user)
+    status_code, msg = proj_service.validate_user_access(query.project_id)
+    if status_code != 200:
+        log.info(f"[READ] {status_code} {msg}")
+        return JSONResponse(content={"details": msg}, status_code=status_code)
+    # validate query on master node
+    query_service = QueryService(db, user)
+    status_code, msg = query_service.validate_query(query.project_id, query.query)
+    if status_code != 200:
+        log.info(f"[RUN QUERY] {status_code} {msg}")
+        return JSONResponse(content={"details": msg}, status_code=status_code)
+    # process query
+    status_code, msg = query_service.read_data(query.project_id, query.query)
+    log.info(f"[RUN QUERY] {status_code} {msg}")
+    if status_code != 200:
+        return JSONResponse(content={"details": msg}, status_code=400)
+
+    return JSONResponse(content={"details": jsonable_encoder(msg)}, status_code=200)
 
 
 @router.post("/write")
 def write_data(
-    query: QueryWrite,
-    file: UploadFile,
+    project_id: UUID = Form(),
+    datatable_id: UUID = Form(),
+    user_file: UploadFile | None = None,
     user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> JSONResponse:
-    msg = "OK"
+    proj_service = ProjectService(db, user)
+    status_code, msg = proj_service.validate_user_access(project_id)
+    if status_code != 200:
+        log.info(f"[WRITE] {status_code} {msg}")
+        return JSONResponse(content={"details": msg}, status_code=status_code)
+    query_service = QueryService(db, user)
+    if user_file is not None:
+        status_code, msg = query_service.validate_file(user_file)
+        if status_code != 200:
+            log.info(f"[WRITE] {status_code} {msg}")
+            return JSONResponse(content={"details": msg}, status_code=status_code)
+    # process query
+    status_code, msg = query_service.write_data(project_id, datatable_id, user_file)
+    log.info(f"[WRITE] {status_code} {msg}")
+
+    if status_code != 200:
+        return JSONResponse(content={"details": msg}, status_code=400)
     return JSONResponse(content={"details": msg}, status_code=200)
