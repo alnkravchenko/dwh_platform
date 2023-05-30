@@ -11,7 +11,6 @@ class DatasourceType(str, Enum):
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
     MONGODB = "mongodb"
-    FILE = "file"
     DATATABLE = "datatable"
 
 
@@ -26,18 +25,7 @@ class DatasourceCreate(BaseModel):
         ds_type = DatasourceType(values["ds_type"])
         keys = v.keys()
         host_pattern = r"^[^:/]+:\d+\/\w+$"
-        if ds_type == DatasourceType.FILE:
-            has_filetype = "filetype" in keys
-            if not has_filetype:
-                msg = "Config must contain file type"
-                raise ValueError(msg)
-            # check file type
-            is_csv = "csv" in v["filetype"]
-            is_json = "json" in v["filetype"]
-            if not is_csv and not is_json:
-                msg = "Only CSV and JSON types are supported"
-                raise ValueError(msg)
-        if ds_type == DatasourceType.DATATABLE or ds_type == DatasourceType.FILE:
+        if ds_type == DatasourceType.DATATABLE:
             has_fields = "columns" in keys
             if not has_fields:
                 msg = "Config must contain table column names"

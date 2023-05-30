@@ -2,7 +2,7 @@ from typing import Dict
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from repos.database import get_db
@@ -59,7 +59,6 @@ def get_datasource(
 @router.post("/")
 def create_datasource(
     ds: DatasourceCreate,
-    # file: UploadFile = File(None),
     user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> JSONResponse:
@@ -72,8 +71,7 @@ def create_datasource(
         return JSONResponse(content={"details": msg}, status_code=status_code)
 
     ds_service = DatasourceService(db, user)
-    file = None
-    status_code, msg = ds_service.create_datasource(ds, file)
+    status_code, msg = ds_service.create_datasource(ds)
     # create response
     log.info(f"[CREATE] {status_code} {msg}")
     return JSONResponse(content={"details": msg}, status_code=status_code)

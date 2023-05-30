@@ -1,7 +1,6 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from uuid import UUID
 
-from fastapi import UploadFile
 from repos import datasources as ds_db
 from repos import datatables as dt_db
 from schema.datasource import (
@@ -27,7 +26,7 @@ class DatasourceService:
         return DataTableCreate(name=table_name, datasource_id=ds_id, columns=columns)
 
     def __request_tables_from_ds(self, ds: DatasourceModel) -> List[DataTableCreate]:
-        if ds.ds_type == DatasourceType.DATATABLE or ds.ds_type == DatasourceType.FILE:
+        if ds.ds_type == DatasourceType.DATATABLE:
             columns: List[Dict[str, str]] = ds.config["columns"]  # type: ignore
             table = DataTableCreate(name=ds.name, datasource_id=ds.id, columns=columns)
             return [table]
@@ -71,16 +70,11 @@ class DatasourceService:
         tables = dt_db.get_datasource_tables(self.db, ds_id)
         return 200, tables
 
-    def create_datasource(
-        self, ds: DatasourceCreate, user_file: Optional[UploadFile] = None
-    ) -> Tuple[int, str]:
+    def create_datasource(self, ds: DatasourceCreate) -> Tuple[int, str]:
         ds = ds_db.create_datasource(self.db, ds)
         # create tables in database
         tables = self.__request_tables_from_ds(ds)
         dt_db.create_tables(self.db, tables)
-        # fill tables with data
-        if user_file is not None:
-            user_file.file.read()
         return 200, f"Datasource(id={ds.id}) created, tables added"
 
     def update_datasource(
