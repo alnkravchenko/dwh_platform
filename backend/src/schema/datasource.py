@@ -22,26 +22,26 @@ class DatasourceCreate(BaseModel):
     config: Dict[str, str]
 
     @validator("config")
-    def validate_config(cls, v: Dict[str, str]):
-        keys, _ = v.items()
+    def validate_config(cls, v: Dict[str, str], values):
+        ds_type = DatasourceType(values["ds_type"])
+        keys = v.keys()
         host_pattern = r"^[^:/]+:\d+\/\w+$"
-        if cls.ds_type == DatasourceType.FILE:
-            has_filename = "filename" in keys
-            if not has_filename:
-                raise ValueError("Config must contain filename")
+        if ds_type == DatasourceType.FILE:
+            has_filetype = "filetype" in keys
+            if not has_filetype:
+                msg = "Config must contain file type"
+                raise ValueError(msg)
             # check file type
-            is_csv = "csv" in v["filename"]
-            is_json = "json" in v["filename"]
+            is_csv = "csv" in v["filetype"]
+            is_json = "json" in v["filetype"]
             if not is_csv and not is_json:
-                raise ValueError("Only CSV and JSON files are supported")
-        if (
-            cls.ds_type == DatasourceType.DATATABLE
-            or cls.ds_type == DatasourceType.FILE
-        ):
+                msg = "Only CSV and JSON types are supported"
+                raise ValueError(msg)
+        if ds_type == DatasourceType.DATATABLE or ds_type == DatasourceType.FILE:
             has_fields = "columns" in keys
             if not has_fields:
-                raise ValueError("Config must contain table column names")
-
+                msg = "Config must contain table column names"
+                raise ValueError(msg)
             check_fields: List[bool] = []
             for field in v["columns"]:
                 parsed: Dict[str, str] = json.loads(field)
@@ -50,13 +50,14 @@ class DatasourceCreate(BaseModel):
                 has_type = "type" in keys
                 check_fields.append(has_name and has_type)
             if not all(check_fields):
-                raise ValueError(
+                msg = (
                     "Field list must contain objects with field name and field type."
                     + 'Example: \n{"columns": [ \n{"name": "col1", "type": "int"}, '
                     + '\n{"name": "col2", "type": "str"}, '
                     + '\n{"name": "col3", "type": "double"}, '
                     + '\n{"name": "col4", "type": "bool"} \n]}'
                 )
+                raise ValueError(msg)
         else:
             has_host = "host" in keys
             has_username = "username" in keys
@@ -68,15 +69,14 @@ class DatasourceCreate(BaseModel):
                 or not has_password
                 or not has_table_names
             ):
-                raise ValueError(
-                    "Config must contain host, username, password and name of tables"
-                )
+                msg = "Config must contain host, username, password and name of tables"
+                raise ValueError(msg)
             # validate structure of host url
             check_host = re.match(host_pattern, v["host"]) is not None
             if not check_host:
-                raise ValueError(
-                    "Host must be in format <host_url>:<port>/<databaseName>"
-                )
+                msg = "Host must be in format <host_url>:<port>/<databaseName>"
+                raise ValueError(msg)
+        return v
 
     class Config:
         orm_mode = True
