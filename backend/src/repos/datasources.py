@@ -36,6 +36,15 @@ def get_datasource_by_id(db: Session, ds_id: UUID) -> DatasourceModel | None:
         return DatasourceModel.from_orm(ds_db)
 
 
+def get_datasources_by_id(db: Session, ids: List[UUID]) -> List[DatasourceModel]:
+    query = select(DatasourceDB).where(DatasourceDB.id.in_(ids))
+    ds_db = db.execute(query).scalars().all()
+    db.commit()
+    if len(ds_db) > 0:
+        return list(map(DatasourceModel.from_orm, ds_db))
+    return []
+
+
 def get_datasource_owner(db: Session, ds_id: UUID) -> UserModel | None:
     query = (
         select(UserDB)
