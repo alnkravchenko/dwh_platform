@@ -10,6 +10,7 @@ from schema.warehouseDatatable import (
     WarehouseDataTableCreate,
     WarehouseDataTableModel,
 )
+from services.query import QueryService
 from sqlalchemy.orm import Session
 
 
@@ -33,14 +34,25 @@ class WarehouseService:
                 tables.append(table)
         return tables
 
+    # TODO: write integration with Spark cluster
     def __add_datatables(
         self, wh: WarehouseModel, dts: Dict[str, List[UUID]]
-    ) -> List[WarehouseDataTableModel]:
+    ) -> Tuple[bool, str | List[WarehouseDataTableModel]]:
         tables = self.__parse_datatables(wh, dts)
-        return dt_db.create_warehouse_tables(self.db, tables)
+        # add tables to spark cluster
+        query_service = QueryService(self.db, self.user)
+        status, msg = query_service.add_tables(tables)
+        if not status:
+            return False, msg
+        # ingest data from the tables
+        status, msg = query_service.ingest_data(tables)
+        if not status:
+            return False, msg
+        return True, dt_db.create_warehouse_tables(self.db, tables)
 
     def __update_datatables(self, wh: WarehouseModel, dts: Dict[str, List[UUID]]):
         tables = self.__parse_datatables(wh, dts)
+        # update in data warehouse cluster
         return dt_db.update_warehouse_tables(self.db, tables)
 
     def validate_user_access(self, wh_id: UUID) -> Tuple[int, str]:
@@ -66,7 +78,9 @@ class WarehouseService:
 
     def create_warehouse(self, wh: WarehouseCreate) -> Tuple[int, str]:
         created_wh = wh_db.create_warehouse(self.db, wh)
-        self.__add_datatables(created_wh, wh.datatables)
+        status, msg = self.__add_datatables(created_wh, wh.datatables)
+        if not status:
+            return 400, msg  # type: ignore
         return 200, f"Warehouse(id={created_wh.id}) created"
 
     def update_warehouse(
