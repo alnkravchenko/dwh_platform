@@ -5,6 +5,7 @@ import pandas as pd
 from delta.pip_utils import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
+    BooleanType,
     DataType,
     FloatType,
     IntegerType,
@@ -66,6 +67,8 @@ def get_column_type(column_type: str) -> DataType:
         return StringType()
     if column_type == "float":
         return FloatType()
+    if column_type == "bool":
+        return BooleanType()
     return StringType()
 
 

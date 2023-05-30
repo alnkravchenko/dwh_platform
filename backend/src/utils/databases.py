@@ -66,6 +66,7 @@ def parse_data_type_mongodb(data_type: str) -> str:
         "float": "float",
         "decimal": "float",
         "string": "str",
+        "boolean": "bool",
     }
     return mapping[data_type.lower()]
 
@@ -74,7 +75,7 @@ def parse_data_type_mysql(data_type: str) -> str:
     data_type = data_type.split("(")[0]
     mapping = {
         "int": "int",
-        "tinyint": "int",
+        "tinyint": "bool",
         "smallint": "int",
         "mediumint": "int",
         "bigint": "int",
@@ -100,6 +101,7 @@ def parse_data_type_postgres(data_type: str) -> str:
         "character": "str",
         "character varying": "str",
         "text": "str",
+        "boolean": "bool",
     }
     return mapping[data_type.lower()]
 
