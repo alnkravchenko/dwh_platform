@@ -5,8 +5,10 @@ from typing import Dict, List, Tuple, TypedDict
 from urllib.parse import urlparse
 
 import mysql.connector
+import pandas as pd
 import psycopg2
 from pymongo import MongoClient
+from schema.datatable import DataTableModel
 
 
 class ColumnInfo(TypedDict):
@@ -302,3 +304,16 @@ def read_from_db(url: str, columns: List[str], table_name: str) -> str:
             return file_path
 
     raise ValueError("Unsupported database URL")
+
+
+def from_table_to_file(ds_url: str, table: DataTableModel) -> Tuple[str, pd.DataFrame]:
+    # get data into file
+    columns = [item["name"] for item in table.columns]
+    filepath = read_from_db(ds_url, columns, table.name)
+    # ingest data
+    file_format = filepath.split(".")[-1]
+    if file_format.lower() == "json":
+        df = pd.read_json(filepath)
+    else:
+        df = pd.read_csv(filepath)
+    return filepath, df
