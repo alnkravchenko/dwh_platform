@@ -150,9 +150,22 @@ class QueryService:
         finally:
             spark_session.stop()
 
-    def read_data(self, ds: DatasourceModel, query: str):
+    def read_data(self, project_id: UUID, query: str):
         """
-        Read data from the datasource
+        Read data from the spark cluster
+        EFFECTS:
+        * creates spark session
+        """
+        node_url = self.__get_node_url(project_id)
+        # run spark queries
+        spark_session = spk.setup_connection(node_url)
+        try:
+            data = spk.run_query(spark_session, query)
+            return 200, data
+        except Exception as e:
+            return 400, str(e)
+        finally:
+            spark_session.stop()
 
         EFFECTS:
         * creates spark session
