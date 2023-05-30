@@ -11,7 +11,7 @@ class WarehouseCreate(BaseModel):
 
     @validator("datatables")
     def validate_config(cls, v: Dict[str, List[UUID]]):
-        keys, _ = v.items()
+        keys = list(v.keys())
         if "fact" not in keys and "dimension" not in keys:
             raise ValueError(
                 "Invalid data table types. Supported types are 'fact' and 'dimension'."
@@ -21,6 +21,7 @@ class WarehouseCreate(BaseModel):
                 "Invalid amount of 'fact' type. There can be"
                 + "only one fact table in data warehouse"
             )
+        return v
 
     class Config:
         orm_mode = True
