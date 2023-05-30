@@ -68,16 +68,16 @@ class QueryService:
         proj_service = ProjectService(self.db, self.user)
         status_code, msg = proj_service.validate_user_access(project_id)
         if status_code != 200:
-            return False, msg
+            return 400, msg
         node_url = proj.node_url  # type: ignore
         # create spark session
         spark_session = spk.setup_connection(node_url)
         # check query
         try:
             spark_session.sql(f"EXPLAIN {query}")
-            return True, "OK"
+            return 200, "OK"
         except Exception as e:
-            return False, str(e)
+            return 400, str(e)
         finally:
             spark_session.stop()
 
