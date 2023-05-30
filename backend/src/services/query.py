@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple
 from uuid import UUID
 
+import pandas as pd
 import structlog
 import utils.spark_helpers as spk
 from fastapi import UploadFile
@@ -167,28 +168,39 @@ class QueryService:
         finally:
             spark_session.stop()
 
+    def write_data(
+        self, project_id: UUID, datatable_id: UUID, file: UploadFile | None = None
+    ) -> Tuple[int, str]:
+        """
+        Write data to the spark cluster
         EFFECTS:
         * creates spark session
         """
-        # get node_url
-        proj: ProjectModel = proj_db.get_project_by_id(
-            self.db, ds.project_id
+        node_url = self.__get_node_url(project_id)
+        # read data from file
+        df = pd.DataFrame([])
+        if file is not None:
+            file_format = file.filename.split(".")[-1]
+            if file_format.lower() == "json":
+                df = pd.read_json(file.file)
+            else:
+                df = pd.read_csv(file.file)
+        # get table info
+        table = dt_db.get_table_by_id(self.db, datatable_id)
+        if table is None:
+            return 404, "Not found"
+        ds: DatasourceModel = ds_db.get_datasource_by_id(
+            self.db, table.datasource_id
         )  # type: ignore
-        # validate user access
-        proj_service = ProjectService(self.db, self.user)
-        status_code, msg = proj_service.validate_user_access(proj.id)
-        if status_code != 200:
-            return False, msg
-        node_url = proj.node_url  # type: ignore
         # run spark queries
         spark_session = spk.setup_connection(node_url)
         try:
-            data = spk.run_query(spark_session, query)
-            return True, self.parse_results(data)
+            if file is None:
+                spk.ingest_data(spark_session, ds, [table])
+            else:
+                spk.ingest_from_file(spark_session, df, table.columns, table.name)
+            return 200, "Data is written"
         except Exception as e:
-            return False, str(e)
+            return 400, str(e)
         finally:
             spark_session.stop()
-
-    def parse_results(self, data) -> str:
-        return str(data)
