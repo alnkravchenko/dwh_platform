@@ -58,11 +58,11 @@ def read_data(
     query_service = QueryService(db, user)
     status_code, msg = query_service.validate_query(query.project_id, query.query)
     if status_code != 200:
-        log.info(f"[RUN QUERY] {status_code} {msg}")
+        log.info(f"[READ] {status_code} {msg}")
         return JSONResponse(content={"details": msg}, status_code=status_code)
     # process query
     status_code, msg = query_service.read_data(query.project_id, query.query)
-    log.info(f"[RUN QUERY] {status_code} {msg}")
+    log.info(f"[READ] {status_code} {msg}")
     if status_code != 200:
         return JSONResponse(content={"details": msg}, status_code=400)
 
@@ -91,7 +91,4 @@ def write_data(
     # process query
     status_code, msg = query_service.write_data(project_id, datatable_id, user_file)
     log.info(f"[WRITE] {status_code} {msg}")
-
-    if status_code != 200:
-        return JSONResponse(content={"details": msg}, status_code=400)
-    return JSONResponse(content={"details": msg}, status_code=200)
+    return JSONResponse(content={"details": msg}, status_code=status_code)

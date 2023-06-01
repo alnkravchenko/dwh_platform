@@ -53,7 +53,9 @@ def get_datasource(
     if status_code == 200:
         log_msg = msg.id  # type: ignore
     log.info(f"[GET] {status_code} {log_msg}")
-    return JSONResponse(content={"details": msg}, status_code=status_code)
+    return JSONResponse(
+        content={"details": jsonable_encoder(msg)}, status_code=status_code
+    )
 
 
 @router.post("/")
