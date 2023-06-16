@@ -7,6 +7,7 @@ from models.warehouse import WarehouseDB
 from models.warehouseDatatable import WarehouseDataTableDB
 from schema.user import UserModel
 from schema.warehouse import WarehouseCreate, WarehouseModel, WarehouseUpdate
+from schema.warehouseDatatable import WarehouseDataTableModel
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
@@ -28,16 +29,15 @@ def get_user_warehouses(
     if len(wh_db) > 0:
         data = []
         for wh in wh_db:
-            tables_db = db.execute(
-                select(WarehouseDataTableDB.id, WarehouseDataTableDB.dt_type).where(
-                    WarehouseDataTableDB.warehouse_id == wh.id
-                )
-            ).all()
+            tables = get_warehouse_tables(db, wh.id)  # type: ignore
             fact_tables = list(
-                map(lambda e: e[0], filter(lambda t: t[1] == "fact", tables_db))
+                map(lambda e: e.id, filter(lambda t: t.dt_type == "fact", tables))
             )
             dimension_tables = list(
-                map(lambda e: e[0], filter(lambda t: t[1] == "dimension", tables_db))
+                map(
+                    lambda e: e.id,
+                    filter(lambda t: t.dt_type == "dimension", tables),
+                )
             )
             tables = {"fact": fact_tables, "dimension": dimension_tables}
             data.append({"warehouse": wh, "tables": tables})
@@ -60,6 +60,17 @@ def get_warehouse_by_id(db: Session, wh_id: UUID) -> WarehouseModel:
     query = select(WarehouseDB).where(WarehouseDB.id == wh_id)
     wh_db = db.execute(query).scalar()
     return WarehouseModel.from_orm(wh_db)
+
+
+def get_warehouse_tables(db: Session, wh_id: UUID) -> List[WarehouseDataTableModel]:
+    query = select(WarehouseDataTableDB).where(
+        WarehouseDataTableDB.warehouse_id == wh_id
+    )
+    tables_db = db.execute(query).scalars().all()
+    db.commit()
+    if len(tables_db) > 0:
+        return list(map(WarehouseDataTableModel.from_orm, tables_db))
+    return []
 
 
 def get_warehouse_owner(db: Session, wh_id: UUID) -> UserModel | None:

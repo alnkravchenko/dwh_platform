@@ -25,6 +25,8 @@ class ProjectModel(ProjectCreate):
 
 class ProjectContent(BaseModel):
     id: UUID
+    name: str
+    node_url: str
     warehouse: Optional[WarehouseModel]
     datasources: List[DatasourceModel]
 
