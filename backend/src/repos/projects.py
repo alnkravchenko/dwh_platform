@@ -12,6 +12,7 @@ from schema.warehouse import WarehouseModel
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
+from . import warehouses as wh_db
 from .database import create_entity
 
 
@@ -63,16 +64,38 @@ def get_content(db: Session, user_id: UUID, project_id: UUID) -> ProjectContent 
     ds_db = db.execute(ds_query).scalars().all()
     # get warehouse
     warehouse_query = select(WarehouseDB).where(WarehouseDB.project_id == project_id)
-    wh_db = db.execute(warehouse_query).scalar()
+    wh_db_ent = db.execute(warehouse_query).scalar()
 
     ds = []
     if ds_db is not None:
         ds = list(map(DatasourceModel.from_orm, ds_db))
     wh = None
-    if wh_db is not None:
-        wh = WarehouseModel.from_orm(wh_db)
+    if wh_db_ent is not None:
+        tables = wh_db.get_warehouse_tables(db, wh_db_ent.id)  # type: ignore
+        fact_tables = list(
+            map(lambda e: e.id, filter(lambda t: t.dt_type == "fact", tables))
+        )
+        dimension_tables = list(
+            map(
+                lambda e: e.id,
+                filter(lambda t: t.dt_type == "dimension", tables),
+            )
+        )
+        datatables = {"fact": fact_tables, "dimension": dimension_tables}
+        wh = WarehouseModel(
+            id=wh_db_ent.id,  # type: ignore
+            name=wh_db_ent.name,  # type: ignore
+            project_id=wh_db_ent.project_id,  # type: ignore
+            datatables=datatables,
+        )
     if proj_db is not None:
-        return ProjectContent(id=proj_db.id, warehouse=wh, datasources=ds)  # type: ignore
+        return ProjectContent(
+            id=proj_db.id,  # type: ignore
+            name=proj_db.name,  # type: ignore
+            node_url=proj_db.node_url,  # type: ignore
+            warehouse=wh,
+            datasources=ds,
+        )
 
 
 def get_project_owner(db: Session, project_id: UUID) -> UserModel | None:
